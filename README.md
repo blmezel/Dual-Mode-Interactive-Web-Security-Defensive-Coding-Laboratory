@@ -1,7 +1,8 @@
 # BGT208: Güvenli Web Yazılımı Geliştirme - Final Projesi
 
 <p align="center">
-  <img src="<img width="600" height="600" alt="istinye-universitesi-logo-png_seeklogo-610039" src="https://github.com/user-attachments/assets/f5c03674-b542-4c14-904e-c4ad2ae47eab" />
+  <img src=<img width="600" height="600" alt="istinye-universitesi-logo-png_seeklogo-610039" src="https://github.com/user-attachments/assets/357eee67-c0e9-4a29-bd8f-29d673404966" />
+ />
 ">
 </p>
 

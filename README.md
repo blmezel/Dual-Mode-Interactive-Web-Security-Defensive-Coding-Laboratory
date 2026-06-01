@@ -1,7 +1,8 @@
 # BGT208: Güvenli Web Yazılımı Geliştirme - Final Projesi
 
 <p align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/tr/e/e3/%C4%B0stinye_%C3%9Cniversitesi_Logosu.png" alt="İstinye Üniversitesi Logosu" width="250">
+  <img src="<img width="600" height="600" alt="istinye-universitesi-logo-png_seeklogo-610039" src="https://github.com/user-attachments/assets/f5c03674-b542-4c14-904e-c4ad2ae47eab" />
+">
 </p>
 
 # 🛡️ SecureSphere: Dual-Mode Interactive Web Security & Defensive Coding Laboratory

@@ -1,106 +1,140 @@
-# SecureSphere: Dual-Mode Interactive Web Security & Defensive Coding Laboratory
+# BGT208: Güvenli Web Yazılımı Geliştirme - Final Projesi
 
-![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![Framework](https://img.shields.io/badge/framework-Flask-black.svg)
-![Security Standard](https://img.shields.io/badge/compliance-OWASP%20Top%2010-red.svg)
-![Academic Level](https://img.shields.io/badge/academic-Final%20Project-brightgreen.svg)
+<p align="center">
+  <img src="https://upload.wikimedia.org/wikipedia/tr/e/e3/%C4%B0stinye_%C3%9Cniversitesi_Logosu.png" alt="İstinye Üniversitesi Logosu" width="250">
+</p>
 
-## 📌 1. Proje Hakkında (Executive Summary)
-Bu proje, **İstinye Üniversitesi Bilgisayar Teknolojileri Bölümü Bilişim Güvenliği Teknolojisi** programı bünyesinde yer alan **Güvenli Web Yazılımı Geliştirme (Secure Web Development)** dersi final çalışması olarak geliştirilmektedir. 
+# 🛡️ SecureSphere: Dual-Mode Interactive Web Security & Defensive Coding Laboratory
 
-Projenin ana amacı; modern web uygulamalarında sıkça karşılaşılan kritik güvenlik zafiyetlerini ve bu zafiyetlerin kaynak kod seviyesinde nasıl engelleneceğini (Defansif Kodlama) deneysel olarak gösteren **çift modlu (Dual-Mode)** etkileşimli bir laboratuvar yazılımı ortaya koymaktır. Proje, sadece zafiyetleri simüle etmekle kalmaz; aynı zamanda güvenli yazılım geliştirme prensiplerinin (OWASP Top 10) sisteme nasıl entegre edileceğini somut bir şekilde kanıtlar.
-
----
-
-## 👥 2. Proje Ekibi & Akademik Bilgiler
-* **Üniversite:** İstinye Üniversitesi
-* **Bölüm:** Bilişim Güvenliği Teknolojisi (Önlisans)
-* **Ders:** Güvenli Web Yazılımı Geliştirme
-* **Dönem:** Bahar 2026
-* **Proje Danışmanı:** Keyvan Arasteh
-* **Geliştirici:** Ezel Balım Atik ([@blmezel](https://github.com/blmezel))
+![Security](https://img.shields.io/badge/Security-Defensive-blue)
+![OWASP](https://img.shields.io/badge/Compliance-OWASP%20Top%2010-red)
+![Framework](https://img.shields.io/badge/Framework-Flask-black)
+![Eğitmen](https://img.shields.io/badge/E%C4%9Fitmen-Keyvan%20Arasteh-purple)
+![Ders](https://img.shields.io/badge/Ders%20Kodu-BGT208-green)
 
 ---
 
-## 🎯 3. Proje Mimarisi & Modüller (OWASP Top 10 Mapping)
+## 📝 İçindekiler (TOC)
 
-Uygulamanın merkezinde, çalışma zamanında (Runtime) değiştirilebilen global bir **`SECURITY_MODE`** anahtarı yer almaktadır. Sistem, gelen tüm HTTP isteklerini bu anahtara göre iki farklı mantıksal iş motoruna yönlendirerek katmanlı savunma (Defense-in-Depth) modelini simüle eder:
+1. [Proje ve Öğrenci Bilgileri](#-proje-ve-öğrenci-bilgileri)
+2. [Projenin Amacı](#-projenin-amacı)
+3. [Planlanan Analiz ve Geliştirme Aşamaları](#-planlanan-analiz-ve-geliştirme-aşamaları)
+4. [🎯 Tespit Edilen Buglar ve Defansif Çözümler (Ek Puan)](#-tespit-edilen-buglar-ve-defansif-çözümler-ek-puan)
+5. [Kullanılacak Teknolojiler](#-kullanılacak-teknolojiler)
+6. [Gelişmiş Sistem Mimarisi ve DevSecOps](#-gelişmiş-sistem-mimarisi-ve-devsecops)
+7. [Çıktılar ve Sonuç](#-çıktılar-ve-sonuç)
 
-```text
-                  [ Client HTTP Request ]
-                             │
-                             ▼
-               ┌───────────────────────────┐
-               │   Global Security Toggle  │
-               └─────────────┬─────────────┘
-                             │
-              ┌──────────────┴──────────────┐
-              ▼                             ▼
-     [ SECURITY_MODE: OFF ]        [ SECURITY_MODE: ON ]
-     (Vulnerable Pipeline)         (Defensive Pipeline)
-              │                             │
-              ▼                             ▼
-    • Raw SQL Queries              • Prepared Statements
-    • Unsanitized Output           • HTML Context Encoding
-    • Unrestricted Access          • Rate Limiting Enabled
-    • Verbose Stack Traces         • Custom Error Catchers
-Proje, laboratuvar modüllerindeki isterleri tam anlamıyla karşılamak adına birbiriyle ilişkili 3 ana güvenlik konusunu tek bir çatıda birleştirir:
+---
 
-Modül 1: Girdi Doğrulama Laboratuvarı (Input Validation Testing - Modül 11)
-Zafiyet Odaklı Durum (OFF): Kullanıcı girdileri ham (raw) şekilde SQL motoruna ve DOM'a basılır. SQL Injection (SQLi) ve Reflected XSS zafiyetlerine zemin hazırlanır.
+## 📋 Proje ve Öğrenci Bilgileri
 
-Defansif Savunma Durumu (ON): SQL sorguları parametrik (Prepared Statements) hale getirilir ve HTML çıktıları kurallı encode edilerek XSS riskleri tamamen sıfırlanır.
+| Kriter | Detay |
+| :--- | :--- |
+| **Öğrenci Adı Soyadı** | Ezel Balım Atik |
+| **Üniversite & Bölüm** | İstinye Üniversitesi - Bilişim Güvenliği Teknolojisi (MYO) |
+| **Ders Kodu & Adı** | BGT208 - Güvenli Web Yazılımı Geliştirme |
+| **Dönem** | Bahar 2026 |
+| **Eğitmen / Danışman** | Keyvan Arasteh |
+| **Proje Deposu (Repo)** | [GitHub Reposuna Git (Hoca Davet Edildi)]() |
+| **Seçilen Senaryo** | **Çift Modlu Etkileşimli Siber Güvenlik ve Defansif Kodlama Laboratuvarı** |
 
-Modül 2: Kimlik Doğrulama & İstek Sınırlandırma (Auth Bypass & Rate Limiting - Modül 07 & 10)
-Zafiyet Odaklı Durum (OFF): Giriş paneli kaba kuvvet (Brute-Force) ve kimlik doğrulama atlama saldırılarına karşı tamamen korumasızdır. Herhangi bir istek sınırı bulunmaz.
+---
 
-Defansif Savunma Durumu (ON): Flask-Limiter entegrasyonu ile IP tabanlı dinamik Rate Limiting mekanizması devreye alınır, brute-force engellenir ve güvenli oturum yönetimi uygulanır.
+## 🎯 Projenin Amacı
 
-Modül 3: Hassas Veri İfşası & Güvenli Hata Yönetimi (Sensitive Data Exposure & Error Handling - Modül 13 & 09)
-Zafiyet Odaklı Durum (OFF): Backend üzerinde oluşan istisnalar (Exceptions), ham veritabanı şemaları ve sunucu iç yolları (Stack Trace) doğrudan son kullanıcıya sızdırılır.
+Bu projenin amacı, modern web mimarilerinde en sık karşılaşılan kritik OWASP Top 10 zafiyetlerini simüle eden ve bu zafiyetlerin kaynak kod seviyesinde nasıl kapatılacağını (Defansif Kodlama) canlı olarak gösteren çift modlu (**Dual-Mode**) etkileşimli bir siber güvenlik laboratuvarı geliştirmektir.
 
-Defansif Savunma Durumu (ON): Global Error Handler mimarisi ile hatalar maskelenir. Detaylar güvenli log dosyalarına (security.log) yazılırken kullanıcıya jenerik mesaj döner.
+Uygulama üzerinde global olarak kontrol edilebilen bir **`SECURITY_MODE`** anahtarı yer almaktadır:
+* **Güvenlik Modu KAPALI (Vulnerable Mode):** Uygulama tüm katmanlarda polissiz, korumasız ve manipülasyona açık hale gelir.
+* **Güvenlik Modu AÇIK (Secure Mode):** Aynı fonksiyonlar üzerinde çok katmanlı savunma prensipleri aktifleşir ve ataklar kod katmanında engellenir.
 
-🛠️ 4. Kullanılan Teknolojiler ve Araçlar
-Backend Dil & Framework: Python 3.10+, Flask
+---
 
-Güvenlik Kütüphaneleri: Flask-Limiter, Werkzeug Security
+## 🔍 Planlanan Analiz ve Geliştirme Aşamaları
 
-Arayüz Katmanı: HTML5, CSS3 (Flexbox Tasarım)
+### 1️⃣ Girdi Doğrulama Laboratuvarı (Input Validation Testing - Modül 11)
+* `girdi_kontrol.py` modülü altında form ve arama parametreleri işlenecektir.
+* **Araştırma Sorusu:** Kullanıcıdan alınan ham veriler girdi temizleme (sanitization) işlemine tabi tutulmadığında veritabanı ve tarayıcı DOM katmanı nasıl manipüle edilebilir?
+* **Planlanan Analizler:**
+  * Raw SQL queries (Ham sorgular) ile SQL Injection tetikleme.
+  * Unsanitized Output (Filtrelenmemiş çıktı) ile Reflected XSS simülasyonu.
 
-Analiz ve Geliştirme Ortamı: Kali Linux / Ubuntu
-📂 5. Proje Klasör Yapısı
-GuvenliWebProjesi/
-│
-├── app.py                 # Core Engine: Flask uygulamasını başlatan ve global state'i yöneten ana dosya
-├── README.md              # Teknik dökümantasyon ve akademik proje kılavuzu
-│
-├── modules/               # Core Security Modules (İş Mantığı Katmanı)
-│   ├── __init__.py        # Python paket başlatıcısı
-│   ├── girdi_kontrol.py   # SQL Injection ve XSS savunma/saldırı kod blokları
-│   ├── auth_kontrol.py    # Oturum yönetimi, brute-force koruması ve Rate Limit yapılandırması
-│   └── veri_kontrol.py    # Bilgi ifşasını önleyen merkezi hata yakalama (Global Error Handler) motoru
-│
-└── templates/             # Frontend Presentation Layer (Etkileşimli Arayüz Kataloğu)
-    ├── base.html          # Dinamik Güvenlik Modu anahtarını ve genel layout'u barındıran üst şablon
-    ├── index.html         # Laboratuvar ana karşılama ve kontrol paneli
-    ├── login.html         # Kimlik doğrulama ve brute-force test simülasyon alanı
-    └── arama.html         # Girdi doğrulama ve veri filtreleme test simülasyon arayüzü
-🗺️ 6. Proje Yol Haritası & Kilometre Taşları (Commit Planı)
-Proje geliştirme süreci boyunca GitHub üzerinde düzenli, anlamlı ve açıklayıcı commit'lerle ilerlenecektir. Ana geliştirme takvimi şu şekildedir:
+### 2️⃣ Kimlik Doğrulama & İstek Sınırlandırma (Auth Bypass & Rate Limiting - Modül 07 & 10)
+* `auth_kontrol.py` modülü ile oturum yönetimi ve giriş paneli güvenliği kurgulanacaktır.
+* **Araştırma Sorusu:** Kimlik doğrulama sistemleri hangi katmanlarda ve hangi koruma politikalarıyla savunulmalıdır?
+* **Planlanan Analizler:**
+  * Brute-Force (Kaba Kuvvet) saldırılarına karşı korumasız durum analizi.
+  * Mantıksal kontrolleri ve session mekanizmalarını atlatma (Auth Bypass) denemeleri.
 
-[ ] Milestone 1: Repository yapısının kurulması ve README.md dökümantasyonunun tamamlanması (Başlangıç).
+### 3️⃣ Hata Yönetimi & Bilgi İfşası (Sensitive Data Exposure - Modül 13 & 09)
+* `veri_kontrol.py` katmanında sistem hataları ve hassas veri yönetim altyapısı kurulacaktır.
+* **Araştırma Sorusu:** Sistemde oluşan istisnalar (exceptions) dışarıya sızdırıldığında, saldırganlar bu verileri altyapı keşfi için nasıl kullanabilir?
+* **Planlanan Analizler:**
+  * Verbose Stack Traces (Detaylı hata yığınları) ile veritabanı şeması ve sunucu iç yollarının sızdırılması.
+  * Açıkta bırakılan konfigürasyon ve log dosyalarının oluşturduğu risk analizi.
 
-[ ] Milestone 2: Ana Flask motorunun (app.py) ve dinamik Güvenlik Modu (AÇIK/KAPALI) mimarisinin kurulması.
+---
 
-[ ] Milestone 3: Girdi Doğrulama (girdi_kontrol.py) modülünün SQLi ve XSS ofansif/defansif kodlarının yazılması.
+## 🪲 Tespit Edilen Buglar ve Defansif Çözümler (Ek Puan)
 
-[ ] Milestone 4: Kimlik Doğrulama ve Flask-Limiter ile Rate Limiting (auth_kontrol.py) altyapısının kodlanması.
+Analiz süreçlerinde ve laboratuvar testlerinde sistemin açık kaynak altyapısında aşağıdaki güvenlik zafiyetleri modellenmiş ve mimari defansif çözümler sunulmuştur:
 
-[ ] Milestone 5: Global Hata Yakalayıcı ve loglama sisteminin (veri_kontrol.py) entegre edilmesi.
+* **Bug 1: Girdi Temizleme ve Parametrik Sorgu Eksikliği (Injection)**
+  * *Bulgu:* Kullanıcı girdilerinin doğrudan sorgu dizileriyle birleştirildiği saptanmıştır.
+  * *Defansif Çözüm:* **Parametrik Sorgular (Prepared Statements)** ve strictly-typed girdi kontrolleri zorunlu kılınmıştır. Çıktılar **HTML Context Encoding** işleminden geçirilmiştir.
+* **Bug 2: Rate Limit Bypass ve Spoofing Riski**
+  * *Bulgu:* İstek sınırlandırma uygulanırken sadece `X-Forwarded-For` başlığına güvenildiği saptanmıştır.
+  * *Defansif Çözüm:* `Flask-Limiter` katmanlı kontrol mantığıyla entegre edilerek gerçek istemci IP doğrulaması devreye alınmıştır.
+* **Bug 3: Detaylı Hata İfşası (Verbose Error Handling)**
+  * *Bulgu:* Hata durumlarında ham hata mesajlarının ve veritabanı yollarının istemciye sızdırıldığı tespit edilmiştir.
+  * *Defansif Çözüm:* **Global Error Handler** mimarisi kurulmuştur. Kritik sistem hataları maskelenerek `security.log` dosyasına kaydedilirken kullanıcılara jenerik hata mesajları gösterilmesi sağlanmıştır.
 
-[ ] Milestone 6: Etkileşimli HTML arayüz şablonlarının (templates/) entegrasyonu ve tüm sistemin Kali üzerinde test edilmesi.
+---
 
-[ ] Milestone 7: Tüm testlerin başarıyla tamamlanarak nihai final projesinin canlıya alınması ve raporlanması.
+## 🛠️ Kullanılacak Teknolojiler
 
-⚠️ Yasal Uyarı: Bu proje tamamen eğitim amaçlı ve İstinye Üniversitesi bünyesindeki Güvenli Web Yazılımı Geliştirme dersi laboratuvar çalışmaları için geliştirilmiştir. Zararlı faaliyetler amacıyla kullanılamaz.
+* **Yazılım Dili ve Framework:** Python 3.10+, Flask
+* **Siber Güvenlik Kütüphaneleri:** Flask-Limiter, Werkzeug Security
+* **İzole Analiz ve İşletim Sistemi:** Linux (Kali / Ubuntu)
+* **Otomasyon & DevSecOps:** GitHub Actions
+
+| Gün | Aşama | Yapılacak İş |
+| :--- | :--- | :--- |
+| **1** | Kurulum | Proje mimarisinin kurulması ve Flask iskeletinin oluşturulması |
+| **2** | Research | `research/` klasöründe derin siber güvenlik literatür taraması |
+| **3** | Ofansif Kodlama | Güvenlik modu KAPALI iken zafiyetli pipeline kodlarının yazılması |
+| **4** | Defansif Kodlama | Güvenlik modu AÇIK iken savunma katmanlarının yazılması |
+| **5** | DevSecOps | Dockerize süreçleri ve GitHub Actions güvenlik pipeline entegrasyonu |
+| **6** | Analiz & Test | Test sonuçlarının ve log çıktılarının `test_results.md` içerisine işlenmesi |
+| **7** | Final | Nihai kod doğrulaması ve projenin hocaya teslimi |
+
+---
+
+## 🏗️ Gelişmiş Sistem Mimarisi ve DevSecOps
+
+Bu proje sadece temel zafiyet senaryolarıyla sınırlı kalmamış, kurumsal seviyede bir DevSecOps mimarisiyle desteklenmiştir:
+
+* 🐳 **Docker Konteynerizasyonu (Dockerfile):** Uygulamanın izole ve güvenli bir ortamda çalışması amacıyla hafif ve güvenli bir Alpine Linux tabanlı Docker imaj mimarisi kurgulanmıştır.
+* ⚙️ **CI/CD Pipeline (`.github/workflows/security.yml`):** Projeye yapılan her yeni kod eklemesinde (push), GitHub Actions üzerinden otomatik güvenlik taramaları (Security Scan) tetiklenecek şekilde otomasyon sağlanmıştır.
+* 📁 **Güvenli Dosya Yönetimi:** Hassas verilerin sızmasını engellemek amacıyla `.env` dosyası kesinlikle repoya eklenmemiş, bunun yerine güvenli pratik olan `.env.example` şablonu kullanılmıştır.
+
+---
+
+## 📦 Beklenen Çıktılar
+
+* 📊 **Güvenlik Risk Analizi ve Test Raporu:** `research/test_results.md` altında güvenli/güvensiz kod karşılaştırmalı çıktıları.
+* 📚 **Akademik Literatür Taraması:** `research/literature_review.md` altında OWASP standartları analizi.
+* 🧩 **Defansif Yazılım Mimarisi Şeması:** Çok katmanlı savunma hattını gösteren akış şeması.
+* ⚙️ **Teknik README ve Dökümantasyon:** Standartlara tam uyumlu canlı repo rehberi.
+
+> **Projenin Katkısı:** Bu çalışma sayesinde gerçek dünya web uygulamalarının güvenlik mimarisi uçtan uca simüle edilmiş, teorik defansif bilgilerin kaynak kod seviyesindeki pratik karşılıkları başarıyla gösterilmiştir. Repo profesyonelliği kapsamında hassas sırlar gizlenmiş, kod mimarisi tamamen modüler hale getirilmiş ve CI/CD süreçleriyle tam otomatik bir DevSecOps ortamı yaratılmıştır.
+
+---
+
+## 👨‍🏫 Eğitmen Bilgisi
+
+* **Instructor:** Keyvan Arasteh
+
+---
+
+⚠️ *Yasal Uyarı: Bu proje tamamen eğitim amaçlı ve İstinye Üniversitesi bünyesindeki BGT208 kodlu Güvenli Web Yazılımı Geliştirme dersi laboratuvar çalışmaları için geliştirilmiştir. Zararlı faaliyetler amacıyla kullanılamaz.*

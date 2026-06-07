@@ -4,8 +4,10 @@ import redis.asyncio as redis
 import os
 from dotenv import load_dotenv
 
-# Router'ımızı içeri aktarıyoruz
+# Router'ları içeri aktarıyoruz
 from src.routers import lab01_middleware
+from src.routers import lab02_bruteforce
+from src.routers import lab03_session
 
 load_dotenv()
 redis_client = None
@@ -27,8 +29,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Router'ı FastAPI ana uygulamasına bağlıyoruz
+# Tüm Router'ları FastAPI ana uygulamasına bağlıyoruz
 app.include_router(lab01_middleware.router)
+app.include_router(lab02_bruteforce.router)
+app.include_router(lab03_session.router)
 
 @app.get("/")
 async def health_check():

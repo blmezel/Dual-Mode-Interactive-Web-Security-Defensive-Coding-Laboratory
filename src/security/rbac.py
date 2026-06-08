@@ -1,12 +1,13 @@
 from fastapi import HTTPException, status, Depends
 from typing import List
+from src.security.auth import verify_authentication
 
 def require_roles(allowed_roles: List[str]):
     """
     Belirli rollere sahip kullanıcıların erişimine izin veren bağımlılık (dependency) oluşturur.
     Auth katmanından gelen payload'u kullanarak yetkiyi denetler.
     """
-    async def role_checker(user_payload: dict):
+    async def role_checker(user_payload: dict = Depends(verify_authentication)):
         """
         Kullanıcının rolünün, izin verilen roller listesinde olup olmadığını kontrol eder.
         """

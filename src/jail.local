@@ -1,0 +1,8 @@
+[securesphere-auth]
+enabled = true
+port = 8000,443
+filter = securesphere-bf
+logpath = /var/log/securesphere/auth.log
+maxretry = 5
+bantime = 900
+findtime = 600

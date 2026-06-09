@@ -18,3 +18,4 @@ if __name__ == "__main__":
     analyzer = SecureSphereAnalyzer("./src")
     print("[*] SecureSphere Statik Kod Denetimi Başlatıldı...")
 # OpenAPI Specs
+# Graceful shutdown handling verified

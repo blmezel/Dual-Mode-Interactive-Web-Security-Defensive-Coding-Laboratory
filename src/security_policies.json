@@ -1,0 +1,13 @@
+{
+  "container_security": {
+    "cap_drop": ["ALL"],
+    "capabilities_allow": ["NET_BIND_SERVICE"],
+    "read_only_root_fs": true,
+    "no_new_privileges": true,
+    "run_as_user": 1000
+  },
+  "network_segmentation": {
+    "internal_networks": ["db-network"],
+    "exposed_networks": ["dmz-network"]
+  }
+}

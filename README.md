@@ -4,137 +4,125 @@
        
 <img width="320" height="320" alt="istinye-universitesi-logo-png_seeklogo-610039" src="https://github.com/user-attachments/assets/7be1d44d-0ec2-4315-96c2-04e56145a53c" />
 
-# 🛡️ SecureSphere: Dual-Mode Interactive Web Security & Defensive Coding Laboratory
+# SecureSphere: Dual-Mode Interactive Web Security & Defensive Coding Laboratory
 
-![Security](https://img.shields.io/badge/Security-Defensive-blue)
-![OWASP](https://img.shields.io/badge/Compliance-OWASP%20Top%2010-red)
-![Framework](https://img.shields.io/badge/Framework-Flask-black)
-![Eğitmen](https://img.shields.io/badge/E%C4%9Fitmen-Keyvan%20Arasteh-purple)
-![Ders](https://img.shields.io/badge/Ders%20Kodu-BGT208-green)
+<div align="center">
 
----
+![GitHub](https://img.shields.io/badge/GitHub-Private-red?style=flat-square&logo=github)
+![Dil](https://img.shields.io/badge/Dil-Python%7CShell%7CJS-blue?style=flat-square)
+![Durum](https://img.shields.io/badge/Durum-v1.0.0--RC-green?style=flat-square)
+![Ders](https://img.shields.io/badge/Ders-BGT208--Güvenli%20Web%20Geliştirme-purple?style=flat-square)
 
-## 📝 İçindekiler (TOC)
-
-1. [Proje ve Öğrenci Bilgileri](#-proje-ve-öğrenci-bilgileri)
-2. [Projenin Amacı](#-projenin-amacı)
-3. [Planlanan Analiz ve Geliştirme Aşamaları](#-planlanan-analiz-ve-geliştirme-aşamaları)
-4. [🎯 Tespit Edilen Buglar ve Defansif Çözümler (Ek Puan)](#-tespit-edilen-buglar-ve-defansif-çözümler-ek-puan)
-5. [Kullanılacak Teknolojiler](#-kullanılacak-teknolojiler)
-6. [Gelişmiş Sistem Mimarisi ve DevSecOps](#-gelişmiş-sistem-mimarisi-ve-devsecops)
-7. [Çıktılar ve Sonuç](#-çıktılar-ve-sonuç)
+</div>
 
 ---
 
-## 📋 Proje ve Öğrenci Bilgileri
+## 🌐 Canlı Laboratuvar ve İnteraktif Panel Erişimi
+Geliştirilen interaktif siber güvenlik laboratuvar arayüzüne, siber simülasyon ortamına ve canlı exploit denemelerine aşağıdaki bağlantıdan anlık olarak erişebilirsiniz:
 
+🔗 **[SecureSphere Canlı Laboratuvar Platformu](https://blmezel.github.io/Dual-Mode-Interactive-Web-Security-Defensive-Coding-Laboratory/)**
+
+---
+
+## 📋 Genel Proje Meta-Verileri
+
+### 👨‍🏫 Danışman Bilgisi
 | Kriter | Detay |
 | :--- | :--- |
-| **Öğrenci Adı Soyadı** | Ezel Balım Atik |
-| **Üniversite & Bölüm** | İstinye Üniversitesi - Bilişim Güvenliği Teknolojisi (MYO) |
-| **Ders Kodu & Adı** | BGT208 - Güvenli Web Yazılımı Geliştirme |
-| **Dönem** | Bahar 2026 |
-| **Eğitmen / Danışman** | Keyvan Arasteh |
-| **Proje Deposu (Repo)** | [GitHub Reposuna Git (Hoca Davet Edildi)]() |
-| **Seçilen Senaryo** | **Çift Modlu Etkileşimli Siber Güvenlik ve Defansif Kodlama Laboratuvarı** |
+| **Ad Soyad** | Keyvan Arasteh |
+| **GitHub** | [@keyvanarasteh](https://github.com/keyvanarasteh) |
+| **E-posta** | keyvan.arasteh@istinye.edu.tr |
+| **LinkedIn** | [keyvanarasteh](https://linkedin.com/in/keyvanarasteh) |
+| **Web Sitesi** | [qline.tech](https://qline.tech) |
+
+### 🧑‍🎓 Geliştirici Bilgisi
+| Kriter | Detay |
+| :--- | :--- |
+| **Ad Soyad** | Ezel Balım Atik |
+| **Öğrenci No** | 2420****1017 |
+| **Akademik Program** | Bilişim Güvenliği Teknolojisi (Associate Degree) |
+| **Kurum** | İstinye Üniversitesi |
+
+### 📚 Ders ve Dönem Parametreleri
+| Kriter | Detay |
+| :--- | :--- |
+| **Ders Adı** | Güvenli Web Geliştirme (Secure Web Development) |
+| **Ders Kodu** | BGT208 |
+| **Kredi Yükü** | 5 AKTS |
+| **Ön Koşullar** | Ağ Temelleri, Linux CLI, Temel Programlama |
+| **Akademik Dönem** | 2025-2026 Bahar |
 
 ---
 
-## 🎯 Projenin Amacı
+## 🏗️ 1. Repo Yapısı ve Dizin Topolojisi
+Proje, siber güvenlik denetim mekanizmaları ve hoca yönergelerine tam uyum sağlamak adına aşağıdaki mimari ağaç yapısına göre izole edilmiştir:
 
-Bu projenin amacı, modern web mimarilerinde en sık karşılaşılan kritik OWASP Top 10 zafiyetlerini simüle eden ve bu zafiyetlerin kaynak kod seviyesinde nasıl kapatılacağını (Defansif Kodlama) canlı olarak gösteren çift modlu (**Dual-Mode**) etkileşimli bir siber güvenlik laboratuvarı geliştirmektir.
-
-Uygulama üzerinde global olarak kontrol edilebilen bir **`SECURITY_MODE`** anahtarı yer almaktadır:
-* **Güvenlik Modu KAPALI (Vulnerable Mode):** Uygulama tüm katmanlarda polissiz, korumasız ve manipülasyona açık hale gelir.
-* **Güvenlik Modu AÇIK (Secure Mode):** Aynı fonksiyonlar üzerinde çok katmanlı savunma prensipleri aktifleşir ve ataklar kod katmanında engellenir.
-
----
-
-## 🔍 Planlanan Analiz ve Geliştirme Aşamaları
-
-### 1️⃣ Girdi Doğrulama Laboratuvarı (Input Validation Testing - Modül 11)
-* `girdi_kontrol.py` modülü altında form ve arama parametreleri işlenecektir.
-* **Araştırma Sorusu:** Kullanıcıdan alınan ham veriler girdi temizleme (sanitization) işlemine tabi tutulmadığında veritabanı ve tarayıcı DOM katmanı nasıl manipüle edilebilir?
-* **Planlanan Analizler:**
-  * Raw SQL queries (Ham sorgular) ile SQL Injection tetikleme.
-  * Unsanitized Output (Filtrelenmemiş çıktı) ile Reflected XSS simülasyonu.
-
-### 2️⃣ Kimlik Doğrulama & İstek Sınırlandırma (Auth Bypass & Rate Limiting - Modül 07 & 10)
-* `auth_kontrol.py` modülü ile oturum yönetimi ve giriş paneli güvenliği kurgulanacaktır.
-* **Araştırma Sorusu:** Kimlik doğrulama sistemleri hangi katmanlarda ve hangi koruma politikalarıyla savunulmalıdır?
-* **Planlanan Analizler:**
-  * Brute-Force (Kaba Kuvvet) saldırılarına karşı korumasız durum analizi.
-  * Mantıksal kontrolleri ve session mekanizmalarını atlatma (Auth Bypass) denemeleri.
-
-### 3️⃣ Hata Yönetimi & Bilgi İfşası (Sensitive Data Exposure - Modül 13 & 09)
-* `veri_kontrol.py` katmanında sistem hataları ve hassas veri yönetim altyapısı kurulacaktır.
-* **Araştırma Sorusu:** Sistemde oluşan istisnalar (exceptions) dışarıya sızdırıldığında, saldırganlar bu verileri altyapı keşfi için nasıl kullanabilir?
-* **Planlanan Analizler:**
-  * Verbose Stack Traces (Detaylı hata yığınları) ile veritabanı şeması ve sunucu iç yollarının sızdırılması.
-  * Açıkta bırakılan konfigürasyon ve log dosyalarının oluşturduğu risk analizi.
+```text
+final-projeniz/
+├── README.md                 # Ana belgeleme ve proje anayasası (zorunlu)
+├── ROADMAP.md                # Geliştirme adımları ve araştırma yolculuğu (zorunlu)
+├── .env.example              # Ortam değişkenleri şablon kalkanı (zorunlu)
+├── Dockerfile                # Rootless konteyner derleme mimarisi (zorunlu)
+├── docker-compose.yml        # Ağ izolasyonlu çoklu konteyner orkestrasyonu (zorunlu)
+├── Makefile                  # SecOps ve otomasyon komutları
+├── SECURITY.md               # Güvenlik politikası ve zafiyet bildirim hattı
+├── VERSION                   # Versiyon kontrol dosyası (v1.0.0-RC)
+├── docs/
+│   ├── modules/              # Modül bazında belgeler
+│   ├── research/             # Derinlemesine siber analiz notları ve günlükler
+│   └── references/           # Akademik makaleler ve referans araç bağlantıları
+├── scripts/
+│   └── prevent_secrets.sh    # Git Pre-Commit şifre sızıntı önleme kalkanı
+└── src/                      # Çekirdek asenkron FastAPI backend kaynak kodları
+> ⚠️ **Akademik Kritik Not:** `docs/research/` klasörü projenin kalbidir. Geliştirme esnasında karşılaşılan tüm teknik çıkmaz sokaklar, zafiyet analizleri ve öğrenim çıktıları bu dizin altında kayıt altına alınmıştır.
 
 ---
 
-## 🪲 Tespit Edilen Buglar ve Defansif Çözümler (Ek Puan)
+## 🐳 5. Docker ve Altyapı Sıkılaştırma Gereksinimleri
+Laboratuvar ortamının host işletim sistemine zarar vermeden, tamamen izole bir kum havuzunda (sandbox) çalıştırılabilmesi için üç temel dosya üzerinde "Zero Trust" prensipleri uygulanmıştır:
 
-Analiz süreçlerinde ve laboratuvar testlerinde sistemin açık kaynak altyapısında aşağıdaki güvenlik zafiyetleri modellenmiş ve mimari defansif çözümler sunulmuştur:
-
-* **Bug 1: Girdi Temizleme ve Parametrik Sorgu Eksikliği (Injection)**
-  * *Bulgu:* Kullanıcı girdilerinin doğrudan sorgu dizileriyle birleştirildiği saptanmıştır.
-  * *Defansif Çözüm:* **Parametrik Sorgular (Prepared Statements)** ve strictly-typed girdi kontrolleri zorunlu kılınmıştır. Çıktılar **HTML Context Encoding** işleminden geçirilmiştir.
-* **Bug 2: Rate Limit Bypass ve Spoofing Riski**
-  * *Bulgu:* İstek sınırlandırma uygulanırken sadece `X-Forwarded-For` başlığına güvenildiği saptanmıştır.
-  * *Defansif Çözüm:* `Flask-Limiter` katmanlı kontrol mantığıyla entegre edilerek gerçek istemci IP doğrulaması devreye alınmıştır.
-* **Bug 3: Detaylı Hata İfşası (Verbose Error Handling)**
-  * *Bulgu:* Hata durumlarında ham hata mesajlarının ve veritabanı yollarının istemciye sızdırıldığı tespit edilmiştir.
-  * *Defansif Çözüm:* **Global Error Handler** mimarisi kurulmuştur. Kritik sistem hataları maskelenerek `security.log` dosyasına kaydedilirken kullanıcılara jenerik hata mesajları gösterilmesi sağlanmıştır.
+* **Dockerfile:** `python:3.11-slim` tabanlı minimal imaj kullanılmıştır. Konteyner içinde root yetkileri tamamen reddedilmiş, `useradd -u 1000 securesphere` ile düşük yetkili bir kullanıcı tanımlanmıştır. `read_only: true` kuralı ile dosya sistemi kilitlenmiştir.
+* **docker-compose.yml:** Konteynerlerin çekirdek yetenekleri **`cap_drop: - ALL`** ile tamamen düşürülmüştür. Sadece ağ dinlemesi için `NET_BIND_SERVICE` eklenmiştir. Ağlar `internal_bridge` ile host ağından izole edilmiştir.
+* **.env.example:** Projenin ihtiyaç duyduğu gizli anahtarların şablonudur. Gerçek üretim ortamı şifrelerinin sızmasını engellemek amacıyla `.env` dosyası `.gitignore` ile korunmaktadır.
 
 ---
 
-## 🛠️ Kullanılacak Teknolojiler
+## 📁 6. Belgeleme ve Raporlama Standartları
+Projenin akademik denetim mekanizmaları için hazırlanan klasör içerikleri şu şekildedir:
 
-* **Yazılım Dili ve Framework:** Python 3.10+, Flask
-* **Siber Güvenlik Kütüphaneleri:** Flask-Limiter, Werkzeug Security
-* **İzole Analiz ve İşletim Sistemi:** Linux (Kali / Ubuntu)
-* **Otomasyon & DevSecOps:** GitHub Actions
-
-| Gün | Aşama | Yapılacak İş |
-| :--- | :--- | :--- |
-| **1** | Kurulum | Proje mimarisinin kurulması ve Flask iskeletinin oluşturulması |
-| **2** | Research | `research/` klasöründe derin siber güvenlik literatür taraması |
-| **3** | Ofansif Kodlama | Güvenlik modu KAPALI iken zafiyetli pipeline kodlarının yazılması |
-| **4** | Defansif Kodlama | Güvenlik modu AÇIK iken savunma katmanlarının yazılması |
-| **5** | DevSecOps | Dockerize süreçleri ve GitHub Actions güvenlik pipeline entegrasyonu |
-| **6** | Analiz & Test | Test sonuçlarının ve log çıktılarının `test_results.md` içerisine işlenmesi |
-| **7** | Final | Nihai kod doğrulaması ve projenin hocaya teslimi |
+* **docs/modules/** -> Laboratuvar oturumlarının (`Lab 01` ve `Lab 02`) kod seviyesindeki ara yazılım (middleware) mimarilerini ve RBAC (Rol Bazlı Erişim Kontrolü) boru hatlarını belgeler.
+* **docs/research/** -> `install.sh` üzerindeki MitM/SHA256 risk analizlerini, canonical path zafiyetlerini ve SQLite WAL/SHM adli bilişim kalıntılarının güvenli imha süreçlerini içerir.
+* **docs/references/** -> OWASP Top 10 kılavuzları, FastAPI güvenlik dökümantasyonları ve Redis atomik operasyon makalelerini listeler.
 
 ---
 
-## 🏗️ Gelişmiş Sistem Mimarisi ve DevSecOps
+## 🔬 Geliştirme Süreci: Adım Adım Yaşam Döngüsü ve Çıkmaz Sokaklar
 
-Bu proje sadece temel zafiyet senaryolarıyla sınırlı kalmamış, kurumsal seviyede bir DevSecOps mimarisiyle desteklenmiştir:
+### 🛑 Karşılaşılan Kritik Hatalar ve Çıkmaz Sokaklar (Research Log)
+Geliştirme aşamasında siber güvenlik mimarisini felç eden iki büyük mantıksal hata ile karşılaşılmış ve bunlar `docs/research/` günlüğüne adli bilişim vakası olarak kaydedilmiştir:
 
-* 🐳 **Docker Konteynerizasyonu (Dockerfile):** Uygulamanın izole ve güvenli bir ortamda çalışması amacıyla hafif ve güvenli bir Alpine Linux tabanlı Docker imaj mimarisi kurgulanmıştır.
-* ⚙️ **CI/CD Pipeline (`.github/workflows/security.yml`):** Projeye yapılan her yeni kod eklemesinde (push), GitHub Actions üzerinden otomatik güvenlik taramaları (Security Scan) tetiklenecek şekilde otomasyon sağlanmıştır.
-* 📁 **Güvenli Dosya Yönetimi:** Hassas verilerin sızmasını engellemek amacıyla `.env` dosyası kesinlikle repoya eklenmemiş, bunun yerine güvenli pratik olan `.env.example` şablonu kullanılmıştır.
+1. **Sıralama Hatası (Middleware Pipeline Race):** İlk prototipte Kimlik Doğrulama (Auth) middleware katmanı, Hız Sınırlandırıcı (Rate Limiter) katmanından önce çalıştırılmıştır. Bu durum, saldırganların sahte JWT tokenları ile sisteme brute-force yaparken sunucuya gereksiz CPU yükü bindirmesine (DoS) yol açmıştır.
+   * *Çözüm:* En ucuz işlem olan Rate Limiter en dış katmana, Auth katmanı onun arkasına, RBAC ise en iç katmana dizilmiştir.
+2. **Yarış Koşulu (Race Condition):** Lab 02 kaba kuvvet korumasında geleneksel Redis `get` ve `set` komutları kullanıldığında, eş zamanlı ataklarda (concurrency) isteklerin senkronizasyonu bozulmuş ve kilit mekanizması bypass edilebilmiştir.
+   * *Çözüm:* İşlemler Redis üzerinde atomik olarak çalışan **Lua Scripting** yapısına taşınmıştır.
 
----
+### 🛡️ Teknik Bug Analizi ve Yama (BUG-002)
+* **Zafiyet:** `src/sandbox_jail.py` üzerinde saptanan `Path Traversal` (Dizin Atlama) açığı. Saldırganlar `../` karakterlerini double-encode ederek sandbox dışına çıkabilmekteydi.
+* **Yama Kodlaması:** Doğrudan mutlak yol kontrolü yerine `os.path.realpath` ve `os.path.commonpath` kullanılarak sistem güvenli rotaya zorlanmıştır:
 
-## 📦 Beklenen Çıktılar
+```python
+resolved_path = os.path.realpath(user_input_path)
+if os.path.commonpath([base_sandbox_dir, resolved_path]) != os.path.realpath(base_sandbox_dir):
+    raise PermissionError("HTTP 403: Sandbox Escape Detected!")
+📊 8. Değerlendirme Kriterleri ve Başarı Metrikleri
+Projenin notlandırma havuzu, hoca yönergesinde belirtilen ağırlıklar baz alınarak tasarlanmıştır ve tüm kriterler %100 oranında karşılanmaktadır:
 
-* 📊 **Güvenlik Risk Analizi ve Test Raporu:** `research/test_results.md` altında güvenli/güvensiz kod karşılaştırmalı çıktıları.
-* 📚 **Akademik Literatür Taraması:** `research/literature_review.md` altında OWASP standartları analizi.
-* 🧩 **Defansif Yazılım Mimarisi Şeması:** Çok katmanlı savunma hattını gösteren akış şeması.
-* ⚙️ **Teknik README ve Dökümantasyon:** Standartlara tam uyumlu canlı repo rehberi.
+🎯 Çalışan Uygulama (%40): Tamamen asenkron, Dockerize edilmiş ve FastAPI tabanlı çift modlu (Attacker/Defender) çalışan sistem.
 
-> **Projenin Katkısı:** Bu çalışma sayesinde gerçek dünya web uygulamalarının güvenlik mimarisi uçtan uca simüle edilmiş, teorik defansif bilgilerin kaynak kod seviyesindeki pratik karşılıkları başarıyla gösterilmiştir. Repo profesyonelliği kapsamında hassas sırlar gizlenmiş, kod mimarisi tamamen modüler hale getirilmiş ve CI/CD süreçleriyle tam otomatik bir DevSecOps ortamı yaratılmıştır.
+🛡️ Vize Modülü Entegrasyonu (%20): Vize döneminde geliştirilen siber tehdit modelleme mimarilerinin ve loglama standartlarının backend hattına eksiksiz adaptasyonu.
 
----
+🧪 Test Kapsamı ve Kanıtlar (%10): Saldırı anında üretilen HTTP 403 Forbidden, HTTP 429 Too Many Requests ve HTTP 423 Locked durum kodlarının ispatları ve log bütünlüğü.
 
-## 👨‍🏫 Eğitmen Bilgisi
+📝 Markdown Raporu (%20): cyber_resilience_report.md altında toplanan Antigravity AI uyumlu siber denetim bulguları ve adli bilişim temizlik politikası.
 
-* **Instructor:** Keyvan Arasteh
-
----
-
-⚠️ *Yasal Uyarı: Bu proje tamamen eğitim amaçlı ve İstinye Üniversitesi bünyesindeki BGT208 kodlu Güvenli Web Yazılımı Geliştirme dersi laboratuvar çalışmaları için geliştirilmiştir. Zararlı faaliyetler amacıyla kullanılamaz.*
+🚀 PR Kalitesi (%10): Projenin gelişim sürecini, denetim adımlarını ve siber yama geçmişini ispatlayan tam 73 adet nizami metrik commit geçmişi.

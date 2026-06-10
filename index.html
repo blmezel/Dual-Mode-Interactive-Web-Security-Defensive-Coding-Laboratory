@@ -1,893 +1,253 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Shield, 
-  Lock, 
-  Zap, 
-  Server, 
-  Activity, 
-  AlertTriangle, 
-  BookOpen, 
-  Terminal, 
-  Github, 
-  Linkedin, 
-  Youtube, 
-  RefreshCw, 
-  CheckCircle2, 
-  Play, 
-  ArrowRight, 
-  User,
-  ExternalLink,
-  ChevronRight,
-  Sparkles,
-  Copy,
-  Check
-} from 'lucide-react';
-
-export default function App() {
-  const [terminalOutput, setTerminalOutput] = useState([]);
-  const [isRunning, setIsRunning] = useState(false);
-  const [activeTab, setActiveTab] = useState('summary');
-  
-  // Swagger Simulator States
-  const [copiedText, setCopiedText] = useState('');
-  const [tokenInput, setTokenInput] = useState('');
-  const [simulatedResponse, setSimulatedResponse] = useState(null);
-  const [loginAttempts, setLoginAttempts] = useState(0);
-  const [loginResponse, setLoginResponse] = useState(null);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockTimeRemaining, setLockTimeRemaining] = useState(0);
-
-  const auditLogs = [
-    { text: "ezel@kali:~/dual-mode-audit$ ./scripts/tools/ezel-audit.sh", type: "cmd" },
-    { text: "[*] 1. AŞAMA: Güvenli Sandbox Sınırları Analiz Ediliyor...", type: "info" },
-    { text: "[!] ANALİZ: '/app/uploads/../../../../etc/passwd' denemesi yapılıyor.", type: "warn" },
-    { text: "[+] BAŞARILI: 'os.path.commonpath' kalkanı saptandı. Kaçış engellendi (403 Forbidden)!", type: "success" },
-    { text: "[*] 2. AŞAMA: Redis In-Memory Kaba Kuvvet Yapısı Denetleniyor...", type: "info" },
-    { text: "[!] ANALİZ: 5 saniyede 10 hatalı giriş denemesi simüle ediliyor.", type: "warn" },
-    { text: "[+] BAŞARILI: IP ve hesap bazlı 'Progressive Delay' kalkanı tetiklendi (423 Locked)!", type: "success" },
-    { text: "[*] 3. AŞAMA: Konteyner Sıkılaştırma Kuralları Sorgulanıyor...", type: "info" },
-    { text: "[+] KONTROL: 'no-new-privileges' parametresi aktif.", type: "success" },
-    { text: "[+] KONTROL: 'cap_drop: ALL' kernel filtrelemesi devrede.", type: "success" },
-    { text: "[+] KONTROL: Rootless Docker çalıştırılıyor (user: 1000:1000).", type: "success" },
-    { text: "[#] SONUÇ: Dual-Mode Lab Altyapısı %100 Güvenli Sıkılaştırma Skoruna Ulaştı!", type: "highlight" }
-  ];
-
-  const luaLogs = [
-    { text: "ezel@kali:~/dual-mode-audit$ redis-cli --eval scripts/limit.lua token_bucket", type: "cmd" },
-    { text: "[*] Atomik Kayar Pencere (Sliding Window) Lua Scripti Yükleniyor...", type: "info" },
-    { text: "[!] ANALİZ: Yüksek eşzamanlılık (1000 RPS) yarış koşulu simülasyonu başlatıldı.", type: "warn" },
-    { text: "[+] BAŞARILI: ZREMRANGEBYSCORE -> ZCARD -> ZADD zinciri tek bir işlemde yürütüldü.", type: "success" },
-    { text: "[+] BAŞARILI: Redis MULTI/EXEC gecikmeleri baypas edildi, yarış koşulları (race conditions) sıfırlandı.", type: "success" },
-    { text: "[#] SONUÇ: Atomik Lua Sınırlandırıcı kalkanı stabil durumda.", type: "highlight" }
-  ];
-
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    setCopiedText(text);
-    setTimeout(() => setCopiedText(''), 2000);
-  };
-
-  const runScript = (type) => {
-    if (isRunning) return;
-    setIsRunning(true);
-    setTerminalOutput([]);
-    const selectedLogs = type === 'audit' ? auditLogs : luaLogs;
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual-Mode Security Lab - Ezel Balım Atik</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .selection\:bg-rose-500\/30 ::selection { background-color: rgba(244, 63, 94, 0.3); color: #fecdd3; }
+        .selection\:bg-rose-500\/30::selection { background-color: rgba(244, 63, 94, 0.3); color: #fecdd3; }
+    </style>
+</head>
+<body class="min-h-screen bg-black text-slate-300 font-sans selection:bg-rose-500/30 selection:text-rose-200 pb-16 relative overflow-x-hidden">
     
-    selectedLogs.forEach((log, index) => {
-      setTimeout(() => {
-        setTerminalOutput(prev => [...prev, log]);
-        if (index === selectedLogs.length - 1) {
-          setIsRunning(false);
-        }
-      }, index * 300);
-    });
-  };
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-rose-950/10 rounded-full blur-[160px]"></div>
+        <div class="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-950/10 rounded-full blur-[160px]"></div>
+    </div>
 
-  const executeProtectedEndpoint = () => {
-    if (!tokenInput.trim()) {
-      setSimulatedResponse({
-        code: 403,
-        status: "Error: Forbidden",
-        body: { "detail": "Not authenticated" },
-        headers: {
-          "content-length": "30",
-          "content-type": "application/json",
-          "server": "uvicorn / fastapi"
-        }
-      });
-    } else if (tokenInput.trim() === "ezel_secret_token_123") {
-      setSimulatedResponse({
-        code: 200,
-        status: "200 OK",
-        body: { "status": "success", "message": "Ezel-Sandbox Secure Area Accessed!", "user": "Ezel Balım Atik", "role": "Standard" },
-        headers: {
-          "content-type": "application/json",
-          "x-rate-limit-remaining": "9/10"
-        }
-      });
-    } else {
-      setSimulatedResponse({
-        code: 401,
-        status: "Error: Unauthorized",
-        body: { "detail": "Invalid or expired cryptographic token" },
-        headers: {
-          "www-authenticate": "Bearer error=\"invalid_token\""
-        }
-      });
-    }
-  };
-
-  const executeLoginSimulation = () => {
-    if (isLocked) return;
-    
-    const nextAttempt = loginAttempts + 1;
-    setLoginAttempts(nextAttempt);
-
-    if (nextAttempt >= 5) {
-      setIsLocked(true);
-      setLockTimeRemaining(15);
-      setLoginResponse({
-        code: 423,
-        status: "423 Locked",
-        body: {
-          "detail": "Account locked due to 5 failed login attempts",
-          "lockout_duration_seconds": 900,
-          "remaining_seconds": 900,
-          "security_action": "Database lookup bypassed. Direct gateway reject."
-        }
-      });
-    } else if (nextAttempt === 1) {
-      setLoginResponse({
-        code: 401,
-        status: "401 Unauthorized",
-        body: { "detail": "Credential mismatch. Fail count: 1. No delay applied." }
-      });
-    } else {
-      const delay = Math.pow(2, nextAttempt - 1);
-      setLoginResponse({
-        code: 429,
-        status: "429 Too Many Requests (Progressive Delay)",
-        body: {
-          "detail": `Progressive delay active. Must wait ${delay}s before retrying.`,
-          "fail_count": nextAttempt,
-          "required_delay_seconds": delay
-        }
-      });
-    }
-  };
-
-  useEffect(() => {
-    let timer;
-    if (isLocked && lockTimeRemaining > 0) {
-      timer = setInterval(() => {
-        setLockTimeRemaining(prev => {
-          if (prev <= 1) {
-            setIsLocked(false);
-            setLoginAttempts(0);
-            setLoginResponse(null);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isLocked, lockTimeRemaining]);
-
-  useEffect(() => {
-    runScript('audit');
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-black text-slate-300 font-sans selection:bg-rose-500/30 selection:text-rose-200 pb-16">
-      
-      {/* Background Neon Glow Effects */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-rose-950/10 rounded-full blur-[160px]"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-emerald-950/10 rounded-full blur-[160px]"></div>
-      </div>
-
-      <div className="relative z-10 max-w-6xl mx-auto px-4 pt-12">
+    <div class="relative z-10 max-w-6xl mx-auto px-4 pt-12">
         
-        {/* BANNER HEADER */}
-        <header className="mb-12">
-          <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-            <div className="space-y-4 max-w-2xl">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-rose-950/40 text-rose-400 border border-rose-500/30 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.15)]">
-                <Shield className="w-3.5 h-3.5" /> BGT208 Siber Güvenlik Final Projesi
-              </span>
-              <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight leading-none">
-                DUAL-MODE <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-rose-600 drop-shadow-[0_0_20px_rgba(244,63,94,0.3)]">SECURITY LAB</span>
-              </h1>
-              <p className="text-lg text-slate-400 font-medium">
-                Güvenlik Analizi, Altyapı Sıkılaştırma ve Defansif Kodlama Raporu
-              </p>
-              <div className="flex gap-3 pt-2">
-                <a href="#swagger" className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-emerald-400 hover:text-emerald-300 transition-colors">
-                  OpenAPI Test Konsolu <ChevronRight className="w-3.5 h-3.5" />
-                </a>
-                <span className="text-slate-700">|</span>
-                <a href="#mermaid" className="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-rose-400 hover:text-rose-300 transition-colors">
-                  Mimari Akış Şeması <ChevronRight className="w-3.5 h-3.5" />
-                </a>
-              </div>
-            </div>
+        <header class="mb-12">
+            <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+                <div class="space-y-4 max-w-2xl">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-wider bg-rose-950/40 text-rose-400 border border-rose-500/30 animate-pulse shadow-[0_0_15px_rgba(244,63,94,0.15)]">
+                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                        BGT208 Siber Güvenlik Final Projesi
+                    </span>
+                    <h1 class="text-4xl md:text-5xl font-black text-white tracking-tight leading-none">
+                        DUAL-MODE <span class="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-rose-600 drop-shadow-[0_0_20px_rgba(244,63,94,0.3)]">SECURITY LAB</span>
+                    </h1>
+                    <p class="text-lg text-slate-400 font-medium">
+                        Güvenlik Analizi, Altyapı Sıkılaştırma ve Defansif Kodlama Raporu
+                    </p>
+                    <div class="flex gap-3 pt-2">
+                        <a href="#swagger" class="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-emerald-400 hover:text-emerald-300 transition-colors">
+                            OpenAPI Test Konsolu 
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                        </a>
+                        <span class="text-slate-700">|</span>
+                        <a href="#mermaid" class="inline-flex items-center gap-1.5 text-xs font-mono font-bold uppercase text-rose-400 hover:text-rose-300 transition-colors">
+                            Mimari Akış Şeması 
+                            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                        </a>
+                    </div>
+                </div>
 
-            {/* METADATA PANEL (Right Box) */}
-            <div className="w-full md:w-80 bg-[#090a0f] border border-slate-800/80 rounded-2xl p-5 shadow-2xl relative overflow-hidden group hover:border-rose-500/20 transition-colors">
-              <div className="absolute top-0 right-0 p-16 bg-rose-500/5 rounded-full blur-xl pointer-events-none"></div>
-              <table className="w-full text-xs font-mono">
-                <tbody>
-                  <tr className="border-b border-slate-900">
-                    <td className="py-2.5 text-slate-500 uppercase">Analist:</td>
-                    <td className="py-2.5 text-white font-bold text-right">Ezel Balım Atik</td>
-                  </tr>
-                  <tr className="border-b border-slate-900">
-                    <td className="py-2.5 text-slate-500 uppercase">Danışman:</td>
-                    <td className="py-2.5 text-rose-400 font-bold text-right">Keyvan Arasteh</td>
-                  </tr>
-                  <tr className="border-b border-slate-900">
-                    <td className="py-2.5 text-slate-500 uppercase">Kurum:</td>
-                    <td className="py-2.5 text-white text-right">İstinye Üniversitesi</td>
-                  </tr>
-                  <tr className="border-b border-slate-900">
-                    <td className="py-2.5 text-slate-500 uppercase">Bölüm:</td>
-                    <td className="py-2.5 text-white text-right">Bilişim Güvenliği</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 text-slate-500 uppercase">Tarih:</td>
-                    <td className="py-2.5 text-emerald-400 font-bold text-right">Haziran 2026</td>
-                  </tr>
-                </tbody>
-              </table>
+                <div class="w-full md:w-80 bg-[#090a0f] border border-slate-800/80 rounded-2xl p-5 shadow-2xl relative overflow-hidden group hover:border-rose-500/20 transition-colors">
+                    <div class="absolute top-0 right-0 p-16 bg-rose-500/5 rounded-full blur-xl pointer-events-none"></div>
+                    <table class="w-full text-xs font-mono">
+                        <tbody>
+                            <tr class="border-b border-slate-900">
+                                <td class="py-2.5 text-slate-500 uppercase">Analist:</td>
+                                <td class="py-2.5 text-white font-bold text-right">Ezel Balım Atik</td>
+                            </tr>
+                            <tr class="border-b border-slate-900">
+                                <td class="py-2.5 text-slate-500 uppercase">Danışman:</td>
+                                <td class="py-2.5 text-rose-400 font-bold text-right">Keyvan Arasteh</td>
+                            </tr>
+                            <tr class="border-b border-slate-900">
+                                <td class="py-2.5 text-slate-500 uppercase">Kurum:</td>
+                                <td class="py-2.5 text-white text-right">İstinye Üniversitesi</td>
+                            </tr>
+                            <tr class="border-b border-slate-900">
+                                <td class="py-2.5 text-slate-500 uppercase">Bölüm:</td>
+                                <td class="py-2.5 text-white text-right">Bilişim Güvenliği</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2.5 text-slate-500 uppercase">Tarih:</td>
+                                <td class="py-2.5 text-emerald-400 font-bold text-right">Haziran 2026</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-          </div>
         </header>
 
-        {/* 1. YÖNETİCİ ÖZETİ SECTION */}
-        <section className="mb-16 bg-[#040508] border border-slate-900 rounded-3xl p-8 relative overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-4">
-              <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-                <span className="text-rose-500">📄 1.</span> Yönetici Özeti
-              </h2>
-              <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-                Bu proje, endüstri standartlarında yüksek güvenlikli bir <b>Dual-Mode (Zafiyetli & Güvenli Mod)</b> web laboratuvarı altyapısının uçtan uca siber savunma kurgusunu kapsamaktadır. Çalışma kapsamında; statik kaynak kod analizlerinden başlanarak, bellek içi durumsal geciktirme mimarilerine, dosya sistemi izolasyon kalkanlarına ve Docker konteyner izolasyon katmanlarına kadar geniş bir <b>"Zero Trust" (Sıfır Güven)</b> mimarisi tasarımı ve doğrulaması yapılmıştır.
-              </p>
-              <p className="text-slate-400 leading-relaxed text-sm">
-                Saldırgan bakış açısıyla tasarlanan Red Team atak vektörleri, Blue Team savunma kalkanları aracılığıyla ağ geçidinde (Gateway) sönümlenmiş; yapılan testlerde sistemin hizmet kesintisizliği garanti altına alınmıştır.
-              </p>
-            </div>
-            
-            {/* PROGRESS BOX */}
-            <div className="lg:col-span-4 bg-black/60 border border-slate-800/60 rounded-2xl p-5 space-y-4">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                <Activity className="w-3.5 h-3.5 text-rose-500" /> Proje Kapsamı ve Başarı
-              </h3>
-              <div className="space-y-3 font-mono text-xs">
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-slate-400">Zorunlu Analizler</span>
-                    <span className="text-emerald-400 font-bold">5/5</span>
-                  </div>
-                  <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                  </div>
+        <section class="mb-16 bg-[#040508] border border-slate-900 rounded-3xl p-8 relative overflow-hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div class="lg:col-span-8 space-y-4">
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                        <span class="text-rose-500">📄 1.</span> Yönetici Özeti
+                    </h2>
+                    <p class="text-slate-400 leading-relaxed text-sm md:text-base">
+                        Bu proje, endüstri standartlarında yüksek güvenlikli bir <b>Dual-Mode (Zafiyetli & Güvenli Mod)</b> web laboratuvarı altyapısının uçtan uca siber savunma kurgusunu kapsamaktadır. Çalışma kapsamında; statik kaynak kod analizlerinden başlanarak, bellek içi durumsal geciktirme mimarilerine, dosya sistemi izolasyon kalkanlarına ve Docker konteyner izolasyon katmanlarına kadar geniş bir <b>"Zero Trust" (Sıfır Güven)</b> mimarisi tasarımı ve doğrulaması yapılmıştır.
+                    </p>
+                    <p class="text-slate-400 leading-relaxed text-sm">
+                        Saldırgan bakış açısıyla tasarlanan Red Team atak vektörleri, Blue Team savunma kalkanları aracılığıyla ağ geçidinde (Gateway) sönümlenmiş; yapılan testlerde sistemin hizmet kesintisizliği garanti altına alınmıştır.
+                    </p>
                 </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-slate-400">Yapay Zeka Denetimleri</span>
-                    <span className="text-rose-400 font-bold">3/3</span>
-                  </div>
-                  <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-rose-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-1">
-                    <span className="text-slate-400">Sıkılaştırma Skoru</span>
-                    <span className="text-emerald-400 font-bold">100%</span>
-                  </div>
-                  <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                    <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* 2. MİMARİ AKIŞ VE MERMAID FLOWCHART */}
-        <section className="mb-16 space-y-6" id="mermaid">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-              <span className="text-rose-500">🔒 2.</span> Mimari Akış ve Savunma Katmanları
-            </h2>
-            <button 
-              onClick={() => copyToClipboard(`graph TD
-    Client[Kullanıcı / İstemci] -->|GET /lab01/protected| RateLimiter{Rate Limiter Kalkanı}
-    RateLimiter -->|Limit Aşıldı: 429| HTTP429[429 Too Many Requests]
-    RateLimiter -->|Normal| Auth{JWT Auth Katmanı}
-    Auth -->|Geçersiz/Yok: 403| HTTP403[403 Forbidden]
-    Auth -->|Geçerli Token| RBAC{RBAC Yetkilendirme}
-    RBAC -->|Yetersiz Rol: 403| HTTP403_Role[403 Forbidden]
-    RBAC -->|Başarılı: 200| Success[200 OK Access Granted]`)}
-              className="px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-mono hover:text-emerald-400 hover:border-emerald-500/30 rounded flex items-center gap-1 transition-all"
-            >
-              {copiedText.includes('graph TD') ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-              Mermaid Kodunu Kopyala
-            </button>
-          </div>
-          
-          {/* VISUAL FLOWCHART GRAPHIC */}
-          <div className="bg-[#040508] border border-slate-900 rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[450px]">
-            <div className="absolute top-4 left-4 font-mono text-[10px] text-slate-600">
-              MİMARİ ZİNCİR VE KONTROL SIRALAMASI (PIPELINE SEQUENCING)
-            </div>
-
-            {/* Client Card */}
-            <div className="bg-[#0c0d12] border border-slate-800 rounded-full px-8 py-3 text-sm font-mono font-bold text-white flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.05)] z-10">
-              <User className="w-4 h-4 text-rose-500" /> İstemci / Saldırgan (HTTP Request)
-            </div>
-
-            <div className="h-8 w-0.5 bg-gradient-to-b from-slate-800 to-rose-500/50 relative"></div>
-
-            {/* Rate Limiter Box */}
-            <div className="bg-[#0d0a0d] border border-rose-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-rose-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
-              <span className="font-bold">1. KATMAN: Rate Limiter (ZREMRANGEBYSCORE)</span>
-              <span className="text-[10px] text-rose-400/70">İşlem Maliyeti: En Düşük (Redis In-Memory)</span>
-              <div className="flex gap-2 mt-1">
-                <span className="text-[9px] bg-rose-950/50 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded">Limit Aşıldıysa: HTTP 429</span>
-              </div>
-            </div>
-
-            <div className="h-8 w-0.5 bg-gradient-to-b from-rose-500/50 to-amber-500/50 relative"></div>
-
-            {/* JWT Auth Box */}
-            <div className="bg-[#0d0c0a] border border-amber-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-amber-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
-              <span className="font-bold">2. KATMAN: Kriptografik JWT Auth</span>
-              <span className="text-[10px] text-amber-400/70">İşlem Maliyeti: Orta (HMAC-SHA256 Signature Verify)</span>
-              <div className="flex gap-2 mt-1">
-                <span className="text-[9px] bg-amber-950/50 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded">Kimlik Yoksa: HTTP 403 Forbidden</span>
-              </div>
-            </div>
-
-            <div className="h-8 w-0.5 bg-gradient-to-b from-amber-500/50 to-emerald-500/50 relative"></div>
-
-            {/* RBAC Box */}
-            <div className="bg-[#0a0d0a] border border-emerald-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-emerald-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
-              <span className="font-bold">3. KATMAN: Rol Tabanlı Erişim (RBAC)</span>
-              <span className="text-[10px] text-emerald-400/70">İşlem Maliyeti: Yüksek (DB Query / Resource Access)</span>
-              <div className="flex gap-2 mt-1">
-                <span className="text-[9px] bg-emerald-950/50 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">Yetki Yoksa: HTTP 403 / 401</span>
-              </div>
-            </div>
-
-            <div className="h-8 w-0.5 bg-gradient-to-b from-emerald-500/50 to-emerald-500/80 relative"></div>
-
-            {/* Success Endpoint */}
-            <div className="bg-emerald-950/30 border-2 border-emerald-500 rounded-2xl p-4 text-center max-w-sm w-full shadow-[0_0_20px_rgba(16,185,129,0.2)] z-10">
-              <Server className="w-6 h-6 text-emerald-400 mx-auto mb-1 animate-pulse" />
-              <h4 className="font-mono font-bold text-white text-xs">Uygulama Mantığı (Route Handler)</h4>
-              <p className="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">HTTP 200 OK (Access Granted)</p>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 3. INTERACTIVE SWAGGER / OPENAPI SIMULATOR */}
-        <section className="mb-16 space-y-6" id="swagger">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-              <span className="text-emerald-500">🧪 3.</span> OpenAPI Interactive Test Laboratuvarı
-            </h2>
-            <p className="text-xs text-slate-500 font-mono">
-              FastAPI Swagger arayüzümüzün siber güvenlik simülasyonudur. İstek göndererek gerçek sistem yanıtlarını (HTTP 403, 429, 423) test edebilirsiniz.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            
-            {/* SWAGGER PANEL SIMULATOR (8 Columns) */}
-            <div className="lg:col-span-8 bg-[#090a10] border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
-              <div className="flex justify-between items-center pb-4 border-b border-slate-900">
-                <div className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="font-mono text-sm font-bold text-white">Dual-Mode Web Security Laboratory</span>
-                  <span className="text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded">1.0.0</span>
-                  <span className="text-[10px] font-mono bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">OAS 3.1</span>
-                </div>
-                <span className="text-xs font-mono text-slate-500">BGT208 - Attacker/Defender Simulator</span>
-              </div>
-
-              {/* Lab 01 Swagger Group */}
-              <div className="space-y-3">
-                <h3 className="font-mono font-bold text-xs text-slate-500 uppercase tracking-wider">Lab 01 - Middleware Pipeline</h3>
                 
-                {/* GET /lab01/public */}
-                <div className="bg-blue-950/10 border border-blue-500/20 rounded-xl p-3 flex justify-between items-center hover:bg-blue-950/20 transition-all">
-                  <div className="flex items-center gap-3">
-                    <span className="px-2.5 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-mono font-bold rounded">GET</span>
-                    <span className="font-mono text-xs text-slate-300 font-semibold">/lab01/public</span>
-                    <span className="text-[11px] text-slate-500 font-mono">Public Area</span>
-                  </div>
-                  <span className="text-[11px] font-mono text-emerald-400 bg-emerald-950/30 px-2 py-0.5 border border-emerald-500/20 rounded">200 OK</span>
-                </div>
-
-                {/* GET /lab01/protected */}
-                <div className="bg-slate-900/60 border border-rose-500/30 rounded-xl p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <span className="px-2.5 py-1 bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold rounded">GET</span>
-                      <span className="font-mono text-xs text-white font-bold">/lab01/protected</span>
-                      <span className="text-[11px] text-rose-400/80 font-mono">Protected Area</span>
-                    </div>
-                    <span className="text-xs font-mono text-slate-500">🔒 Auth Required</span>
-                  </div>
-
-                  <p className="text-xs text-slate-400 font-mono italic">
-                    Rate Limiter -{">"} Auth zincirini gerektiren uç nokta. Geçerli bir JWT token zorunludur.
-                  </p>
-
-                  <div className="bg-black/60 border border-slate-800 rounded-xl p-3 space-y-3">
-                    <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                      <div className="w-full">
-                        <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1">Authorization Token (Bearer):</label>
-                        <input 
-                          type="text" 
-                          placeholder="Boş bırakın (403 için) ya da 'ezel_secret_token_123' yazın..."
-                          value={tokenInput}
-                          onChange={(e) => setTokenInput(e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs font-mono text-emerald-400 focus:outline-none focus:border-rose-500/50 transition-colors"
-                        />
-                      </div>
-                      <button 
-                        onClick={executeProtectedEndpoint}
-                        className="w-full sm:w-auto px-5 py-2 bg-rose-950/40 text-rose-400 border border-rose-500/30 hover:bg-rose-900/30 font-mono text-xs font-bold rounded-lg transition-colors"
-                      >
-                        Execute
-                      </button>
-                    </div>
-
-                    {/* CURL SHOWCASE */}
-                    <div className="pt-2 border-t border-slate-900 space-y-1">
-                      <span className="text-[9px] font-mono text-slate-500 uppercase">Curl Command:</span>
-                      <div className="bg-slate-950 p-2 rounded border border-slate-900 flex justify-between items-center">
-                        <code className="text-[10px] font-mono text-slate-400 overflow-x-auto">
-                          curl -X 'GET' 'http://127.0.0.1:8000/lab01/protected' {tokenInput ? `-H 'Authorization: Bearer ${tokenInput}'` : ''}
-                        </code>
-                        <button 
-                          onClick={() => copyToClipboard(`curl -X 'GET' 'http://127.0.0.1:8000/lab01/protected'`)}
-                          className="text-slate-500 hover:text-slate-300"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RESPONSE DISPLAY */}
-                  {simulatedResponse && (
-                    <div className="bg-black border border-slate-800 rounded-xl p-4 space-y-3">
-                      <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-                        <span className="text-[10px] font-mono text-slate-500 uppercase">Server Response:</span>
-                        <span className={`text-xs font-mono font-bold ${simulatedResponse.code === 200 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                          {simulatedResponse.status}
-                        </span>
-                      </div>
-                      <div className="space-y-2">
+                <div class="lg:col-span-4 bg-black/60 border border-slate-800/60 rounded-2xl p-5 space-y-4">
+                    <h3 class="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-rose-500 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Proje Kapsamı ve Başarı
+                    </h3>
+                    <div class="space-y-3 font-mono text-xs">
                         <div>
-                          <span className="text-[9px] font-mono text-slate-600 block">Response Body:</span>
-                          <pre className="text-xs font-mono text-slate-300 bg-[#07080c] p-3 rounded border border-slate-900 overflow-x-auto">
-                            {JSON.stringify(simulatedResponse.body, null, 2)}
-                          </pre>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Zorunlu Analizler</span>
+                                <span class="text-emerald-400 font-bold">5/5</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+                            </div>
                         </div>
-                      </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Yapay Zeka Denetimleri</span>
+                                <span class="text-rose-400 font-bold">3/3</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-rose-500 h-1.5 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="text-slate-400">Sıkılaştırma Skoru</span>
+                                <span class="text-emerald-400 font-bold">100%</span>
+                            </div>
+                            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
                     </div>
-                  )}
                 </div>
-              </div>
-
-              {/* Lab 02 Swagger Group */}
-              <div className="space-y-3 pt-4 border-t border-slate-900">
-                <h3 className="font-mono font-bold text-xs text-slate-500 uppercase tracking-wider">Lab 02 - Progressive Brute Force</h3>
-                
-                {/* POST /lab02/login */}
-                <div className="bg-slate-900/60 border border-emerald-500/30 rounded-xl p-4 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                      <span className="px-2.5 py-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold rounded">POST</span>
-                      <span className="font-mono text-xs text-white font-bold">/lab02/login</span>
-                      <span className="text-[11px] text-emerald-400/80 font-mono">Simulated Login</span>
-                    </div>
-                    {isLocked && (
-                      <span className="text-xs font-mono text-rose-400 animate-pulse">🔒 LOCKED ({lockTimeRemaining}s)</span>
-                    )}
-                  </div>
-
-                  <p className="text-xs text-slate-400 font-mono italic">
-                    Umutsuz şifre denemelerinde siber engelleme maliyetini katlayan "Progressive Delay" ve "Account Lockout" simülasyonu.
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-black/60 border border-slate-800 rounded-xl p-3">
-                    <div className="text-xs font-mono text-slate-400">
-                      Başarısız Giriş Sayacı: <span className="text-rose-400 font-bold">{loginAttempts} / 5</span>
-                    </div>
-                    <button 
-                      onClick={executeLoginSimulation}
-                      disabled={isLocked}
-                      className="w-full sm:w-auto px-5 py-2 bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/30 font-mono text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
-                    >
-                      Hatalı Şifre Gönder
-                    </button>
-                  </div>
-
-                  {loginResponse && (
-                    <div className="bg-black border border-slate-800 rounded-xl p-4 space-y-3">
-                      <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-                        <span className="text-[10px] font-mono text-slate-500 uppercase">Server Response:</span>
-                        <span className={`text-xs font-mono font-bold ${loginResponse.code === 423 ? 'text-rose-400 animate-pulse' : 'text-amber-400'}`}>
-                          {loginResponse.status}
-                        </span>
-                      </div>
-                      <pre className="text-xs font-mono text-slate-300 bg-[#07080c] p-3 rounded border border-slate-900 overflow-x-auto">
-                        {JSON.stringify(loginResponse.body, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                </div>
-              </div>
-
             </div>
-
-            {/* TESTING METRICS SIDEBAR (4 Columns) */}
-            <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[#040508] border border-slate-900 rounded-3xl p-6 space-y-4">
-                <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                  <Activity className="w-3.5 h-3.5 text-rose-500" /> Sızma Testi Durumları
-                </h4>
-                
-                <div className="space-y-3 text-xs font-mono">
-                  <div className="p-3 bg-rose-950/20 border border-rose-500/20 rounded-xl flex justify-between items-center">
-                    <div>
-                      <p className="text-rose-400 font-bold">Unauthenticated Request</p>
-                      <p className="text-[10px] text-slate-500">GET /lab01/protected</p>
-                    </div>
-                    <span className="font-bold text-rose-400">403 Forbidden</span>
-                  </div>
-
-                  <div className="p-3 bg-amber-950/20 border border-amber-500/20 rounded-xl flex justify-between items-center">
-                    <div>
-                      <p className="text-amber-400 font-bold">Brute Force Limit (4. Deneme)</p>
-                      <p className="text-[10px] text-slate-500">POST /lab02/login</p>
-                    </div>
-                    <span className="font-bold text-amber-400">429 Too Many</span>
-                  </div>
-
-                  <div className="p-3 bg-rose-950/40 border border-rose-500/40 rounded-xl flex justify-between items-center">
-                    <div>
-                      <p className="text-rose-400 font-bold">Account Locked (5. Deneme)</p>
-                      <p className="text-[10px] text-slate-500">POST /lab02/login</p>
-                    </div>
-                    <span className="font-bold text-rose-400 animate-pulse">423 Locked</span>
-                  </div>
-
-                  <div className="p-3 bg-emerald-950/20 border border-emerald-500/20 rounded-xl flex justify-between items-center">
-                    <div>
-                      <p className="text-emerald-400 font-bold">Authorized Safe Path</p>
-                      <p className="text-[10px] text-slate-500">Header: Token Verified</p>
-                    </div>
-                    <span className="font-bold text-emerald-400">200 OK</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
         </section>
 
-        {/* 4. KRİTİK ANALİZLER SECTION */}
-        <section className="mb-16 space-y-6">
-          <div className="space-y-1">
-            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-              <span className="text-rose-500">🧪 4.</span> Kritik Analizler (Laboratuvar Kurguları)
-            </h2>
-            <p className="text-sm text-slate-500 font-mono">
-              Final projesi kapsamında kurgulanan defansif mekanizmalara ait teknik detaylar ve ispatları aşağıdadır:
-            </p>
-          </div>
-
-          <div className="space-y-6">
+        <section class="mb-16 space-y-6" id="mermaid">
+            <div class="flex justify-between items-center">
+                <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                    <span class="text-rose-500">🔒 2.</span> Mimari Akış ve Savunma Katmanları
+                </h2>
+                <button 
+                    onclick="copyMermaidCode()"
+                    class="px-3 py-1 bg-slate-900 border border-slate-800 text-[11px] font-mono hover:text-emerald-400 hover:border-emerald-500/30 rounded flex items-center gap-1 transition-all"
+                >
+                    <span id="copy-text-btn" class="flex items-center gap-1">
+                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        Mermaid Kodunu Kopyala
+                    </span>
+                </button>
+            </div>
             
-            {/* LAB 1: Middleware Chain */}
-            <div className="bg-[#040508] border border-slate-900 rounded-3xl p-6 md:p-8 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="px-2.5 py-1 bg-rose-950/40 text-rose-400 border border-rose-500/20 rounded-md font-mono text-xs font-bold">Laboratuvar 1</span>
-                <span className="text-emerald-400 text-xs font-mono font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Kalkan Devrede
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Middleware Zinciri ve Rol Tabanlı Erişim (RBAC)</h3>
-              
-              <div className="border-l-2 border-rose-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-rose-400">🔍 KRİTİK SORU:</p>
-                <p className="text-xs text-slate-300 italic">
-                  "Saldırganlar yüksek kriptografik yük getiren auth denetimlerinden önce sunucu CPU kaynaklarını nasıl sömürür? Savunma pipeline sırası nasıl olmalıdır?"
-                </p>
-              </div>
+            <div class="bg-[#040508] border border-slate-900 rounded-3xl p-8 flex flex-col items-center justify-center relative overflow-hidden min-h-[450px]">
+                <div class="absolute top-4 left-4 font-mono text-[10px] text-slate-600">
+                    MİMARİ ZİNCİR VE KONTROL SIRALAMASI (PIPELINE SEQUENCING)
+                </div>
 
-              <div className="border-l-2 border-emerald-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-emerald-400">🛡️ ANALİZ YANITI & SAVUNMA:</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Projede kurgulanan <b>Rate Limiter → Auth → RBAC</b> pipeline tasarımı, en ucuz filtreleme işlemini en dışta yapar. İstemci henüz pahalı bir imza doğrulamasına (JWT Verify) girmeden önce IP bazlı hız sınırlandırmasına maruz bırakılır. Eğer hız sınırı aşılırsa doğrudan <span className="font-mono text-rose-400 font-semibold">HTTP 429</span> döner. Başarıyla doğrulanan istekler en son katmanda RBAC kontrolünden geçerek rol bazlı (Admin, Standard, Anonymous) filtrelenir ve yetkisiz istekler <span className="font-mono text-rose-400 font-semibold">HTTP 403 Forbidden</span> ile bloklanır.
-                </p>
-              </div>
+                <div class="bg-[#0c0d12] border border-slate-800 rounded-full px-8 py-3 text-sm font-mono font-bold text-white flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.05)] z-10">
+                    <svg class="w-4 h-4 text-rose-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    İstemci / Saldırgan (HTTP Request)
+                </div>
+
+                <div class="h-8 w-0.5 bg-gradient-to-b from-slate-800 to-rose-500/50 relative"></div>
+
+                <div class="bg-[#0d0a0d] border border-rose-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-rose-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
+                    <span class="font-bold">1. KATMAN: Rate Limiter (ZREMRANGEBYSCORE)</span>
+                    <span class="text-[10px] text-rose-400/70">İşlem Maliyeti: En Düşük (Redis In-Memory)</span>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-[9px] bg-rose-950/50 text-rose-400 border border-rose-500/20 px-1.5 py-0.5 rounded">Limit Aşıldıysa: HTTP 429</span>
+                    </div>
+                </div>
+
+                <div class="h-8 w-0.5 bg-gradient-to-b from-rose-500/50 to-amber-500/50 relative"></div>
+
+                <div class="bg-[#0d0c0a] border border-amber-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-amber-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
+                    <span class="font-bold">2. KATMAN: Kriptografik JWT Auth</span>
+                    <span class="text-[10px] text-amber-400/70">İşlem Maliyeti: Orta (HMAC-SHA256 Signature Verify)</span>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-[9px] bg-amber-950/50 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded">Kimlik Yoksa: HTTP 403 Forbidden</span>
+                    </div>
+                </div>
+
+                <div class="h-8 w-0.5 bg-gradient-to-b from-amber-500/50 to-emerald-500/50 relative"></div>
+
+                <div class="bg-[#0a0d0a] border border-emerald-500/30 rounded-xl px-12 py-3.5 text-sm font-mono text-emerald-300 flex flex-col items-center gap-1 shadow-xl z-10 max-w-md text-center">
+                    <span class="font-bold">3. KATMAN: Rol Tabanlı Erişim (RBAC)</span>
+                    <span class="text-[10px] text-emerald-400/70">İşlem Maliyeti: Yüksek (DB Query / Resource Access)</span>
+                    <div class="flex gap-2 mt-1">
+                        <span class="text-[9px] bg-emerald-950/50 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded">Yetki Yoksa: HTTP 403 / 401</span>
+                    </div>
+                </div>
+
+                <div class="h-8 w-0.5 bg-gradient-to-b from-emerald-500/50 to-emerald-500/80 relative"></div>
+
+                <div class="bg-emerald-950/30 border-2 border-emerald-500 rounded-2xl p-4 text-center max-w-sm w-full shadow-[0_0_20px_rgba(16,185,129,0.2)] z-10">
+                    <svg class="w-6 h-6 text-emerald-400 mx-auto mb-1 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    <h4 class="font-mono font-bold text-white text-xs">Uygulama Mantığı (Route Handler)</h4>
+                    <p class="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">HTTP 200 OK (Access Granted)</p>
+                </div>
             </div>
-
-            {/* LAB 2: Brute Force & Progressive Delay */}
-            <div className="bg-[#040508] border border-slate-900 rounded-3xl p-6 md:p-8 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="px-2.5 py-1 bg-rose-950/40 text-rose-400 border border-rose-500/20 rounded-md font-mono text-xs font-bold">Laboratuvar 2</span>
-                <span className="text-emerald-400 text-xs font-mono font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Kalkan Devrede
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Redis ile Kaba Kuvvet Koruması ve Progressive Lockout</h3>
-              
-              <div className="border-l-2 border-rose-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-rose-400">🔍 KRİTİK SORU:</p>
-                <p className="text-xs text-slate-300 italic">
-                  "Dağıtık yük dengeleyiciler arkasındaki in-memory sayaçlar neden tutarsızlık gösterir? Yarış koşulu (Race Condition) riskleri nasıl elimine edilir?"
-                </p>
-              </div>
-
-              <div className="border-l-2 border-emerald-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-emerald-400">🛡️ ANALİZ YANITI & SAVUNMA:</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Çözüm olarak, tüm sunucuların tek bir durumsal önbellek deposuna bağlanması amacıyla <b>Redis</b> entegre edilmiştir. Yüksek eşzamanlı istekler altında in-memory sayaçlardaki yarış koşullarını çözmek için Redis MULTI/EXEC yapısı yerine atomik <b>Lua Scripting (EVAL)</b> kurgulanmıştır. Lua scripti tek parçacıkta (single-threaded) çalıştığı için oku-güncelle-yaz adımları atomik gerçekleşir. 5 ardışık hatalı girişte hesap <span className="font-mono text-rose-400 font-semibold">HTTP 423 Locked</span> durumuna alınarak 15 dakika bloke edilir.
-                </p>
-              </div>
-            </div>
-
-            {/* LAB 3: Session Hijacking */}
-            <div className="bg-[#040508] border border-slate-900 rounded-3xl p-6 md:p-8 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="px-2.5 py-1 bg-rose-950/40 text-rose-400 border border-rose-500/20 rounded-md font-mono text-xs font-bold">Laboratuvar 3</span>
-                <span className="text-emerald-400 text-xs font-mono font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Kalkan Devrede
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Durumsal Oturum Güvenliği ve Token Rotasyonu</h3>
-              
-              <div className="border-l-2 border-rose-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-rose-400">🔍 KRİTİK SORU:</p>
-                <p className="text-xs text-slate-300 italic">
-                  "Bir saldırgan ele geçirdiği oturum jetonunu (JWT) başka bir ağ/cihaz üzerinden kullanmaya çalışırsa sistem bunu nasıl anlar? Token hırsızlığı algılama kurgusu nedir?"
-                </p>
-              </div>
-
-              <div className="border-l-2 border-emerald-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-emerald-400">🛡️ ANALİZ YANITI & SAVUNMA:</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Token sızıntılarını önlemek için <b>IP & User-Agent Kriptografik Bağlama (Fingerprinting)</b> mimarisi kurulmuştur. Oturum açıldığı an istemcinin ağ parmak izi ile JWT imzası ilişkilendirilir. Ağ değişimi veya parmak izi uyuşmazlığı saptandığı anda oturum Redis üzerinde anında imha edilir ve istek <span className="font-mono text-rose-400 font-semibold">HTTP 401 Unauthorized</span> ile reddedilir. Ayrıca <b>Token Rotation</b> devrededir; eski bir yenileme jetonu (RefreshToken) tekrar sunulursa sızıntı varsayılır ve tüm ilişkili token ailesi iptal edilir.
-                </p>
-              </div>
-            </div>
-
-            {/* LAB 4: Path Traversal */}
-            <div className="bg-[#040508] border border-slate-900 rounded-3xl p-6 md:p-8 space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="px-2.5 py-1 bg-rose-950/40 text-rose-400 border border-rose-500/20 rounded-md font-mono text-xs font-bold">Laboratuvar 4</span>
-                <span className="text-emerald-400 text-xs font-mono font-bold flex items-center gap-1">
-                  <CheckCircle2 className="w-4 h-4" /> Kalkan Devrede
-                </span>
-              </div>
-              <h3 className="text-xl font-bold text-white">Kum Havuzu İzolasyonu (File Sandbox)</h3>
-              
-              <div className="border-l-2 border-rose-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-rose-400">🔍 KRİTİK SORU:</p>
-                <p className="text-xs text-slate-300 italic">
-                  "Girdi temizleme (string replace) neden zayıf bir korumadır? İşletim sistemi seviyesindeki canonicalization açıkları nasıl kesin olarak önlenir?"
-                </p>
-              </div>
-
-              <div className="border-l-2 border-emerald-500/50 pl-4 py-1 space-y-2">
-                <p className="text-xs font-mono font-bold text-emerald-400">🛡️ ANALİZ YANITI & SAVUNMA:</p>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Saldırganlar double url encoding (`%252e%252e%252f`) veya null-byte enjeksiyonları ile basit string temizleme filtrelerini kolayca baypas edebilir. Projede karakter eşleştirmesi yerine mutlak kanonik yol tespiti yapan <b>os.path.realpath</b> kullanılmıştır. Çözümlenen mutlak yolun güvenli kum havuzu kök dizini (R) dışında kalıp kalmadığı <b>os.path.commonpath</b> küme mantığıyla doğrulanır. Koşul sağlanmadığı anda <span className="font-mono text-rose-400 font-semibold">HTTP 403 Forbidden</span> ile dosya sistemi çağrıları işletim sistemi seviyesine inmeden durdurulur.
-                </p>
-              </div>
-            </div>
-
-          </div>
         </section>
 
-        {/* 5. ÖZEL SAVUNMA ARAÇLARI (Terminal Emulator) */}
-        <section className="mb-16 space-y-6" id="terminal">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-              <span className="text-rose-500">💻 5.</span> Özel Savunma Araçları (Ezel-Audit)
-            </h2>
-            <div className="flex gap-2">
-              <button 
-                onClick={() => runScript('audit')} 
-                disabled={isRunning}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold bg-rose-950/40 text-rose-400 border border-rose-500/30 hover:bg-rose-900/30 transition-all flex items-center gap-1.5 disabled:opacity-50"
-              >
-                <Play className="w-3.5 h-3.5" /> Run Audit
-              </button>
-              <button 
-                onClick={() => runScript('lua')} 
-                disabled={isRunning}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-mono font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-900/30 transition-all flex items-center gap-1.5 disabled:opacity-50"
-              >
-                <RefreshCw className="w-3.5 h-3.5" /> Test Lua Concurrency
-              </button>
-            </div>
-          </div>
-
-          {/* TERMINAL UI */}
-          <div className="bg-[#040508] border border-slate-900 rounded-3xl p-5 shadow-2xl relative overflow-hidden">
-            <div className="flex items-center gap-2 pb-4 border-b border-slate-900 mb-4">
-              <div className="w-3 h-3 rounded-full bg-rose-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-              <span className="text-xs font-mono text-slate-600 pl-2">ezel@kali: ~/dual-mode-audit</span>
+        <section class="mb-16 space-y-6" id="swagger">
+            <div class="space-y-1">
+                <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                    <span class="text-emerald-500">🧪 3.</span> OpenAPI Interactive Test Laboratuvarı
+                </h2>
+                <p class="text-xs text-slate-500 font-mono">
+                    FastAPI Swagger arayüzümüzün siber güvenlik simülasyonudur. İstek göndererek gerçek sistem yanıtlarını (HTTP 403, 429, 423) test edebilirsiniz.
+                </p>
             </div>
 
-            {/* OUTPUT STREAM */}
-            <div className="font-mono text-xs md:text-sm space-y-2.5 min-h-[300px] overflow-y-auto max-h-[450px]">
-              {terminalOutput.length === 0 ? (
-                <p className="text-slate-600 italic">Terminal boş. Yukarıdan siber tarama scriptini başlatın...</p>
-              ) : (
-                terminalOutput.map((log, idx) => (
-                  <p 
-                    key={idx} 
-                    className={`
-                      ${log.type === 'cmd' ? 'text-white font-bold' : ''}
-                      ${log.type === 'info' ? 'text-cyan-400' : ''}
-                      ${log.type === 'warn' ? 'text-rose-400 font-semibold' : ''}
-                      ${log.type === 'success' ? 'text-emerald-400' : ''}
-                      ${log.type === 'highlight' ? 'text-yellow-400 font-bold border-t border-b border-slate-900 py-1.5 mt-2' : ''}
-                    `}
-                  >
-                    {log.type === 'cmd' ? '$ ' : ''}{log.text}
-                  </p>
-                ))
-              )}
-              {isRunning && (
-                <span className="inline-block w-2 h-4 bg-rose-500 animate-pulse"></span>
-              )}
-            </div>
-          </div>
-        </section>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <div class="lg:col-span-8 bg-[#090a10] border border-slate-800 rounded-3xl p-6 space-y-6 shadow-2xl relative overflow-hidden">
+                    <div class="flex justify-between items-center pb-4 border-b border-slate-900">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span class="font-mono text-sm font-bold text-white">Dual-Mode Web Security Laboratory</span>
+                            <span class="text-[10px] font-mono bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded">1.0.0</span>
+                            <span class="text-[10px] font-mono bg-emerald-950/30 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">OAS 3.1</span>
+                        </div>
+                        <span class="text-xs font-mono text-slate-500 hidden sm:inline">BGT208 - Attacker/Defender Simulator</span>
+                    </div>
 
-        {/* 6. YAPAY ZEKA DENETİM RAPORLARI */}
-        <section className="mb-16 space-y-6">
-          <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="text-rose-500">🤖 6.</span> Yapay Zeka Denetim Raporları
-          </h2>
+                    <div class="space-y-3">
+                        <h3 class="font-mono font-bold text-xs text-slate-500 uppercase tracking-wider">Lab 01 - Middleware Pipeline</h3>
+                        
+                        <div class="bg-blue-950/10 border border-blue-500/20 rounded-xl p-3 flex justify-between items-center hover:bg-blue-950/20 transition-all">
+                            <div class="flex items-center gap-3">
+                                <span class="px-2.5 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-mono font-bold rounded">GET</span>
+                                <span class="font-mono text-xs text-slate-300 font-semibold">/lab01/public</span>
+                                <span class="text-[11px] text-slate-500 font-mono hidden sm:inline">Public Area</span>
+                            </div>
+                            <span class="text-[11px] font-mono text-emerald-400 bg-emerald-950/30 px-2 py-0.5 border border-emerald-500/20 rounded">200 OK</span>
+                        </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            {/* Gemini Deep Search */}
-            <div className="bg-[#040508] border border-slate-900 rounded-2xl p-6 space-y-3 relative overflow-hidden group hover:border-rose-500/20 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-950/30 border border-rose-500/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-rose-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Gemini Deep Search</h3>
-              <p className="text-xs text-slate-500 font-mono">Kaynak Kod Güvenliği ve Zafiyet Karşılaştırması</p>
-              <p className="text-xs text-slate-400 leading-relaxed pt-2">
-                FastAPI endpoint'leri statik analize tabi tutulmuştur. Zafiyetli (Vulnerable) modun girdi parametreleri saptanmış, `os.path.realpath` ve `os.path.commonpath` eşleşmeleri matematiksel olarak doğrulanmıştır.
-              </p>
-            </div>
-
-            {/* DeepSeek Reasoning */}
-            <div className="bg-[#040508] border border-slate-900 rounded-2xl p-6 space-y-3 relative overflow-hidden group hover:border-emerald-500/20 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-emerald-950/30 border border-emerald-500/20 flex items-center justify-center">
-                <Terminal className="w-5 h-5 text-emerald-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">DeepSeek Reasoning</h3>
-              <p className="text-xs text-slate-500 font-mono">Mantıksal Akış ve Yarış Koşulu Testleri</p>
-              <p className="text-xs text-slate-400 leading-relaxed pt-2">
-                Yüksek eşzamanlı istekler altında Redis in-memory sayaçlarındaki gecikmeler analiz edilmiştir. Multi-threaded ortamlardaki durum tutarsızlıkları kanıtlanarak Lua scriptlerinin atomikliği modellenmiştir.
-              </p>
-            </div>
-
-            {/* Antigravity Audit */}
-            <div className="bg-[#040508] border border-slate-900 rounded-2xl p-6 space-y-3 relative overflow-hidden group hover:border-rose-500/20 transition-colors">
-              <div className="w-10 h-10 rounded-xl bg-rose-950/30 border border-rose-500/20 flex items-center justify-center">
-                <Server className="w-5 h-5 text-rose-400" />
-              </div>
-              <h3 className="font-bold text-white text-lg">Antigravity Audit</h3>
-              <p className="text-xs text-slate-500 font-mono">Docker Çevre Birimi & Konteyner Sıkılaştırma</p>
-              <p className="text-xs text-slate-400 leading-relaxed pt-2">
-                Docker runtime izinleri denetlenmiştir. `cap_drop: ALL` ve `read_only: true` flag'leri ile siber saldırganların konteyner dışına sızma (container escape) riskleri sıfıra indirilmiştir.
-              </p>
-            </div>
-
-          </div>
-        </section>
-
-        {/* 7. ARAŞTIRMACI GÜNLÜĞÜ (Kriz Yönetimi) */}
-        <section className="mb-16 space-y-6">
-          <h2 className="text-2xl font-extrabold text-white flex items-center gap-2.5">
-            <span className="text-rose-500">📝 7.</span> Araştırmacı Günlüğü (Kriz Yönetimi)
-          </h2>
-
-          <div className="bg-[#040508] border border-slate-900 rounded-3xl overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse font-mono text-xs">
-                <thead>
-                  <tr className="border-b border-slate-900 bg-black/60">
-                    <th className="p-4 text-slate-500 uppercase font-bold tracking-wider">Tarih</th>
-                    <th className="p-4 text-slate-500 uppercase font-bold tracking-wider">Olay / Karşılaşılan Kriz</th>
-                    <th className="p-4 text-slate-500 uppercase font-bold tracking-wider">Uygulanan Çözüm (Hot-Fix)</th>
-                    <th className="p-4 text-slate-500 uppercase font-bold tracking-wider text-right">Durum</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-slate-900/50 hover:bg-slate-900/20 transition-colors">
-                    <td className="p-4 text-rose-400 font-bold">04.04.2026</td>
-                    <td className="p-4 text-white font-bold flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" /> 0 Byte Script Dosyaları
-                    </td>
-                    <td className="p-4 text-slate-400">
-                      <code className="text-[11px] bg-slate-950 text-rose-400 px-1.5 py-0.5 rounded border border-slate-900">port-check.sh</code> fonksiyonel kodla manuel olarak dolduruldu.
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">ÇÖZÜLDÜ</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-slate-900/50 hover:bg-slate-900/20 transition-colors">
-                    <td className="p-4 text-rose-400 font-bold">18.04.2026</td>
-                    <td className="p-4 text-white font-bold flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" /> Redis Lockout Yarış Koşulu
-                    </td>
-                    <td className="p-4 text-slate-400">
-                      Gecikme sayaçlarındaki limit sapmaları <code className="text-[11px] bg-slate-950 text-rose-400 px-1.5 py-0.5 rounded border border-slate-900">Lua Script</code> yardımıyla atomik hale getirildi.
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">ÇÖZÜLDÜ</span>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-slate-900/50 hover:bg-slate-900/20 transition-colors">
-                    <td className="p-4 text-rose-400 font-bold">02.05.2026</td>
-                    <td className="p-4 text-white font-bold flex items-center gap-2">
-                      <AlertTriangle className="w-3.5 h-3.5 text-yellow-500" /> Path Traversal Prefix Bypass
-                    </td>
-                    <td className="p-4 text-slate-400">
-                      Anlamsal karakter eşleşme zafiyeti barındıran prefix yerine <code className="text-[11px] bg-slate-950 text-rose-400 px-1.5 py-0.5 rounded border border-slate-900">os.path.commonpath</code> entegre edildi.
-                    </td>
-                    <td className="p-4 text-right">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-950/40 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">ÇÖZÜLDÜ</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        {/* FOOTER & TOOLKIT */}
-        <footer className="border-t border-slate-900 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="space-y-2">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-500">Kullanılan Araç Seti (Toolkit)</h4>
-            <div className="flex flex-wrap gap-2">
-              <span className="px-3 py-1 bg-[#090a0f] border border-slate-800 text-xs font-mono rounded-full text-slate-400">Nmap</span>
-              <span className="px-3 py-1 bg-[#090a0f] border border-rose-500/30 text-xs font-mono rounded-full text-rose-400">Ezel-Audit</span>
-              <span className="px-3 py-1 bg-[#090a0f] border border-slate-800 text-xs font-mono rounded-full text-slate-400">Docker Engine</span>
-              <span className="px-3 py-1 bg-[#090a0f] border border-slate-800 text-xs font-mono rounded-full text-slate-400">Fail2Ban</span>
-              <span className="px-3 py-1 bg-[#090a0f] border border-slate-800 text-xs font-mono rounded-full text-slate-400">Redis</span>
-              <span className="px-3 py-1 bg-[#090a0f] border border-slate-800 text-xs font-mono rounded-full text-slate-400">FastAPI</span>
-            </div>
-          </div>
-          <p className="text-xs font-mono text-slate-600">
-            © 2026 Ezel Balım Atik. All Rights Reserved.
-          </p>
-        </footer>
-
-      </div>
-    </div>
-  );
-}
+                        <div class="bg-slate-900/60 border border-rose-500/30 rounded-xl p-4 space-y-4">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-2.5 py-1 bg-rose-500/20 border border-rose-500/30 text-rose-400 text-xs font-mono font-bold rounded">GET</span>

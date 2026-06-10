@@ -132,4 +132,4 @@ Projenin notlandırma havuzu, hoca yönergesinde belirtilen ağırlıklar baz al
 
 Projenin operasyonel çıktılarını, çift modlu (dual-mode) interaktif web güvenliği analizlerini ve güvenli kodlama (defensive coding) laboratuvar bulgularını daha geniş bir kitleye interaktif olarak sunmak amacıyla bağımsız bir web sitesi devreye alınmıştır. Hocamızın ve inceleyicilerin projeyi web arayüzü üzerinden grafiksel olarak da takip edebilmesi için hazırlanan platforma aşağıdaki bağlantıdan canlı olarak erişilebilir:
 
-👉 [Dual-Mode Interactive Web Security & Defensive Coding Laboratory](https://blmezel.github.io/dual-mode-interactive-web-security-defensive-coding-laboratory/)
+👉 https://blmezel.github.io/Dual-Mode-Interactive-Web-Security-Defensive-Coding-Laboratory/

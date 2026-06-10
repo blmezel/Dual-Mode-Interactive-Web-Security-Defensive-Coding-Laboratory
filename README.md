@@ -126,3 +126,9 @@ Projenin notlandırma havuzu, hoca yönergesinde belirtilen ağırlıklar baz al
 📝 Markdown Raporu (%20): cyber_resilience_report.md altında toplanan Antigravity AI uyumlu siber denetim bulguları ve adli bilişim temizlik politikası.
 
 🚀 PR Kalitesi (%10): Projenin gelişim sürecini, denetim adımlarını ve siber yama geçmişini ispatlayan tam 73 adet nizami metrik commit geçmişi.
+```
+## 🌐 Canlı Yayın ve Web Platformu / Live Demonstration
+
+Projenin operasyonel çıktılarını, çift modlu (dual-mode) interaktif web güvenliği analizlerini ve güvenli kodlama (defensive coding) laboratuvar bulgularını daha geniş bir kitleye interaktif olarak sunmak amacıyla bağımsız bir web sitesi devreye alınmıştır. Hocamızın ve inceleyicilerin projeyi web arayüzü üzerinden grafiksel olarak da takip edebilmesi için hazırlanan platforma aşağıdaki bağlantıdan canlı olarak erişilebilir:
+
+👉 [Dual-Mode Interactive Web Security & Defensive Coding Laboratory](https://blmezel.github.io/Dual-Mode-Interactive-Web-Security-Defensive-Coding-Laboratory/)
